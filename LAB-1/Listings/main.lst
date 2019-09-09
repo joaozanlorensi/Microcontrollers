@@ -9,56 +9,56 @@ ARM Macro Assembler    Page 1
     3 00000000         ; Prof. Guilherme Peron
     4 00000000         ; Ver 1 19/03/2018
     5 00000000         ; Ver 2 26/08/2018
-    6 00000000         ; Este programa deve esperar o usuário pressionar uma ch
-                       ave.
-    7 00000000         ; Caso o usuário pressione uma chave, um LED deve piscar
-                        a cada 1 segundo.
+    6 00000000         ; Este programa deve esperar o usuï¿½rio pressionar uma 
+                       chave.
+    7 00000000         ; Caso o usuï¿½rio pressione uma chave, um LED deve pisc
+                       ar a cada 1 segundo.
     8 00000000         
     9 00000000         ; ------------------------------------------------------
                        -------------------------
-   10 00000000                 THUMB                        ; Instruções do tip
-                                                            o Thumb-2
+   10 00000000                 THUMB                        ; Instruï¿½ï¿½es do
+                                                             tipo Thumb-2
    11 00000000         ; ------------------------------------------------------
                        -------------------------
    12 00000000         
-   13 00000000         ; Declarações EQU - Defines
+   13 00000000         ; Declaraï¿½ï¿½es EQU - Defines
    14 00000000         ;<NOME>         EQU <VALOR>
    15 00000000         ; ========================
-   16 00000000         ; Definições de Valores
+   16 00000000         ; Definiï¿½ï¿½es de Valores
    17 00000000         
    18 00000000         
    19 00000000         ; ------------------------------------------------------
                        -------------------------
-   20 00000000         ; Área de Dados - Declarações de variáveis
+   20 00000000         ; ï¿½rea de Dados - Declaraï¿½ï¿½es de variï¿½veis
    21 00000000                 AREA             DATA, ALIGN=2
-   22 00000000         ; Se alguma variável for chamada em outro arquivo
+   22 00000000         ; Se alguma variï¿½vel for chamada em outro arquivo
    23 00000000         ;EXPORT  <var> [DATA,SIZE=<tam>]   ; Permite chamar a va
-                       riável <var> a 
+                       riï¿½vel <var> a 
    24 00000000         ; partir de outro arquivo
    25 00000000         ;<var> SPACE <tam>                        ; Declara uma 
-                       variável de nome <var>
+                       variï¿½vel de nome <var>
    26 00000000         ; de <tam> bytes a partir da primeira 
-   27 00000000         ; posição da RAM  
+   27 00000000         ; posiï¿½ï¿½o da RAM  
    28 00000000         
    29 00000000         ; ------------------------------------------------------
                        -------------------------
-   30 00000000         ; Área de Código - Tudo abaixo da diretiva a seguir será
-                        armazenado na memória de 
-   31 00000000         ;                  código
+   30 00000000         ; ï¿½rea de Cï¿½digo - Tudo abaixo da diretiva a seguir 
+                       serï¿½ armazenado na memï¿½ria de 
+   31 00000000         ;                  cï¿½digo
    32 00000000                 AREA             |.text|, CODE, READONLY, ALIGN=
 2
    33 00000000         
-   34 00000000         ; Se alguma função do arquivo for chamada em outro arqui
-                       vo 
+   34 00000000         ; Se alguma funï¿½ï¿½o do arquivo for chamada em outro a
+                       rquivo 
    35 00000000                 EXPORT           Start       ; Permite chamar a 
-                                                            função Start a part
-                                                            ir de 
+                                                            funï¿½ï¿½o Start a 
+                                                            partir de 
    36 00000000         ; outro arquivo. No caso startup.s
    37 00000000         
-   38 00000000         ; Se chamar alguma função externa 
+   38 00000000         ; Se chamar alguma funï¿½ï¿½o externa 
    39 00000000         ;IMPORT <func>              ; Permite chamar dentro dest
                        e arquivo uma 
-   40 00000000         ; função <func>
+   40 00000000         ; funï¿½ï¿½o <func>
    41 00000000                 IMPORT           PLL_Init
    42 00000000                 IMPORT           SysTick_Init
    43 00000000                 IMPORT           SysTick_Wait1ms
@@ -75,7 +75,7 @@ ARM Macro Assembler    Page 2
    48 00000000         
    49 00000000         ; ------------------------------------------------------
                        -------------------------
-   50 00000000         ; Função main()
+   50 00000000         ; Funï¿½ï¿½o main()
    51 00000000         Start
    52 00000000 F7FF FFFE       BL               PLL_Init    ;Chama a subrotina 
                                                             para alterar o cloc
@@ -90,8 +90,8 @@ ARM Macro Assembler    Page 2
    55 0000000C         
    56 0000000C         MainLoop
    57 0000000C         ; ****************************************
-   58 0000000C         ; Escrever código que lê o estado da chave, se ela estiv
-                       er desativada apaga o LED
+   58 0000000C         ; Escrever cï¿½digo que lï¿½ o estado da chave, se ela e
+                       stiver desativada apaga o LED
    59 0000000C         ; Se estivar ativada chama a subrotina Pisca_LED
    60 0000000C         ; ****************************************
    61 0000000C F7FF FFFE       BL               PortJ_Input
@@ -117,15 +117,15 @@ ARM Macro Assembler    Page 2
    81 00000034         
    82 00000034         ;-------------------------------------------------------
                        -------------------------
-   83 00000034         ; Função Pisca_LED
-   84 00000034         ; Parâmetro de entrada: Não tem
-   85 00000034         ; Parâmetro de saída: Não tem
+   83 00000034         ; Funï¿½ï¿½o Pisca_LED
+   84 00000034         ; Parï¿½metro de entrada: Nï¿½o tem
+   85 00000034         ; Parï¿½metro de saï¿½da: Nï¿½o tem
    86 00000034         Pisca_LED
    87 00000034         ; ****************************************
-   88 00000034         ; Escrever função que acende o LED, espera 1 segundo, ap
-                       aga o LED e espera 1 s
-   89 00000034         ; Esta função deve chamar a rotina SysTick_Wait1ms com o
-                        parâmetro de entrada em R0
+   88 00000034         ; Escrever funï¿½ï¿½o que acende o LED, espera 1 segundo
+                       , apaga o LED e espera 1 s
+   89 00000034         ; Esta funï¿½ï¿½o deve chamar a rotina SysTick_Wait1ms c
+                       om o parï¿½metro de entrada em R0
    90 00000034         ; ****************************************
    91 00000034 F04F 0002       MOV              R0, #2_00000010
 
@@ -149,8 +149,8 @@ ARM Macro Assembler    Page 3
                        --------------------------------------------------------
                        ----------- 
   102 0000004E 00 00           ALIGN                        ;Garante que o fim 
-                                                            da seção está alinh
-                                                            ada 
+                                                            da seï¿½ï¿½o estï¿½
+                                                             alinhada 
   103 00000050                 END                          ;Fim do arquivo
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
 erwork --depend=.\objects\main.d -o.\objects\main.o -I.\RTE\_Target_1 -IC:\User

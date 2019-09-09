@@ -1,0 +1,235 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ; Exemplo.s
+    2 00000000         ; Desenvolvido para a placa EK-TM4C1294XL
+    3 00000000         ; Prof. Guilherme Peron
+    4 00000000         ; 12/03/2018
+    5 00000000         
+    6 00000000         ; ------------------------------------------------------
+                       -------------------------
+    7 00000000                 THUMB                        ; Instruções do tip
+                                                            o Thumb-2
+    8 00000000         ; ------------------------------------------------------
+                       -------------------------
+    9 00000000         ; Declarações EQU - Defines
+   10 00000000         ;<NOME>         EQU <VALOR>
+   11 00000000         ; ------------------------------------------------------
+                       -------------------------
+   12 00000000         ; Área de Dados - Declarações de variáveis
+   13 00000000                 AREA             DATA, ALIGN=2
+   14 00000000         ; Se alguma variável for chamada em outro arquivo
+   15 00000000         ;EXPORT  <var> [DATA,SIZE=<tam>]   ; Permite chamar a va
+                       riável <var> a 
+   16 00000000         ; partir de outro arquivo
+   17 00000000         ;<var> SPACE <tam>                        ; Declara uma 
+                       variável de nome <var>
+   18 00000000         ; de <tam> bytes a partir da primeira 
+   19 00000000         ; posição da RAM  
+   20 00000000         
+   21 00000000         ; ------------------------------------------------------
+                       -------------------------
+   22 00000000         ; Área de Código - Tudo abaixo da diretiva a seguir será
+                        armazenado na memória de 
+   23 00000000         ;                  código
+   24 00000000                 AREA             |.text|, CODE, READONLY, ALIGN=
+2
+   25 00000000         
+   26 00000000         ; Se alguma função do arquivo for chamada em outro arqui
+                       vo 
+   27 00000000                 EXPORT           Start       ; Permite chamar a 
+                                                            função Start a part
+                                                            ir de 
+   28 00000000         ; outro arquivo. No caso startup.s
+   29 00000000         
+   30 00000000         ; Se chamar alguma função externa 
+   31 00000000         ;IMPORT <func>              ; Permite chamar dentro dest
+                       e arquivo uma 
+   32 00000000         ; função <func>
+   33 00000000         
+   34 00000000         ; ------------------------------------------------------
+                       -------------------------
+   35 00000000         ; Função main()
+   36 00000000         Start
+   37 00000000         ; Comece o código aqui <================================
+                       ======================
+   38 00000000         
+   39 00000000         ; LAB 0: BUBBLE SORT
+   40 00000000 F44F 61A0       MOV              R1, #0x0500 ; R1 = ENDERECO BAS
+                                                            E
+   41 00000004 F2C2 0100       MOVT             R1, #0x2000
+   42 00000008         ; INSIRA OS NUMEROS NA RAM
+   43 00000008 F04F 000C       MOV              R0, #12
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   44 0000000C 7008            STRB             R0, [R1]
+   45 0000000E F04F 0043       MOV              R0, #67
+   46 00000012 7048            STRB             R0, [R1, #1]
+   47 00000014 F04F 000C       MOV              R0, #12
+   48 00000018 7088            STRB             R0, [R1, #2]
+   49 0000001A F04F 000C       MOV              R0, #12
+   50 0000001E 70C8            STRB             R0, [R1, #3]
+   51 00000020 F04F 002F       MOV              R0, #47
+   52 00000024 7108            STRB             R0, [R1, #4]
+   53 00000026 F04F 0005       MOV              R0, #5
+   54 0000002A 7148            STRB             R0, [R1, #5]
+   55 0000002C F04F 003B       MOV              R0, #59
+   56 00000030 7188            STRB             R0, [R1, #6]
+   57 00000032 F04F 0009       MOV              R0, #9
+   58 00000036 71C8            STRB             R0, [R1, #7]
+   59 00000038 F04F 0021       MOV              R0, #33
+   60 0000003C 7208            STRB             R0, [R1, #8]
+   61 0000003E F04F 0063       MOV              R0, #99
+   62 00000042 7248            STRB             R0, [R1, #9]
+   63 00000044         ;
+   64 00000044 200A            MOVS             R0, #10     ; R0 = QTE DE ELEME
+                                                            NTOS
+   65 00000046 1E44            SUBS             R4, R0, #1  ; N - 1
+   66 00000048 2200            MOVS             R2, #0      ; R2 = i
+   67 0000004A 2300            MOVS             R3, #0      ; R3 = j
+   68 0000004C         comparaI
+   69 0000004C 42A2            CMP              R2, R4
+   70 0000004E DA19            BGE              fim
+   71 00000050 1AA5            SUBS             R5, R4, R2  ; R5 <= N - 1 - I
+   72 00000052         comparaJ
+   73 00000052 42AB            CMP              R3, R5
+   74 00000054 DA09            BGE              aumentaI
+   75 00000056 F000 F810       BL               resetaR1
+   76 0000005A 4419            ADD              R1, R3
+   77 0000005C 780E            LDRB             R6, [R1]    ; PEGA N[J] DA RAM
+   78 0000005E 784F            LDRB             R7, [R1, #1] ; PEGA N[J + 1] DA
+                                                             RAM
+   79 00000060 42BE            CMP              R6, R7
+   80 00000062 DD07            BLE              aumentaJ
+   81 00000064 704E            STRB             R6, [R1, #1]
+   82 00000066 700F            STRB             R7, [R1]
+   83 00000068 E004            B                aumentaJ
+   84 0000006A         aumentaI
+   85 0000006A F102 0201       ADD              R2, #1      ; I <= I + 1
+   86 0000006E F04F 0300       MOV              R3, #0      ; J <= 0 
+   87 00000072 E7EB            B                comparaI
+   88 00000074         aumentaJ
+   89 00000074 F103 0301       ADD              R3, #1
+   90 00000078 E7EB            B                comparaJ
+   91 0000007A         resetaR1
+   92 0000007A F44F 61A0       MOV              R1, #0x0500 ; R1 = ENDERECO BAS
+                                                            E
+   93 0000007E F2C2 0100       MOVT             R1, #0x2000
+   94 00000082 4770            BX               LR
+   95 00000084 BF00    fim     NOP
+   96 00000086 00 00           ALIGN                        ; garante que o fim
+                                                             da seção está alin
+                                                            hada 
+   97 00000088                 END                          ; fim do arquivo
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
+erwork --depend=.\exemplo.d -o.\exemplo.o -I.\RTE\_Target_1 -IC:\Users\joaoz\Ap
+pData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C129 -IC:\Keil_v5\A
+RM\CMSIS\Include --predefine="__EVAL SETA 1" --predefine="__UVISION_VERSION SET
+A 528" --predefine="TM4C1294NCPDT SETA 1" --list=.\exemplo.lst exemplo.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+DATA 00000000
+
+Symbol: DATA
+   Definitions
+      At line 13 in file exemplo.s
+   Uses
+      None
+Comment: DATA unused
+1 symbol
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 24 in file exemplo.s
+   Uses
+      None
+Comment: .text unused
+Start 00000000
+
+Symbol: Start
+   Definitions
+      At line 36 in file exemplo.s
+   Uses
+      At line 27 in file exemplo.s
+Comment: Start used once
+aumentaI 0000006A
+
+Symbol: aumentaI
+   Definitions
+      At line 84 in file exemplo.s
+   Uses
+      At line 74 in file exemplo.s
+Comment: aumentaI used once
+aumentaJ 00000074
+
+Symbol: aumentaJ
+   Definitions
+      At line 88 in file exemplo.s
+   Uses
+      At line 80 in file exemplo.s
+      At line 83 in file exemplo.s
+
+comparaI 0000004C
+
+Symbol: comparaI
+   Definitions
+      At line 68 in file exemplo.s
+   Uses
+      At line 87 in file exemplo.s
+Comment: comparaI used once
+comparaJ 00000052
+
+Symbol: comparaJ
+   Definitions
+      At line 72 in file exemplo.s
+   Uses
+      At line 90 in file exemplo.s
+Comment: comparaJ used once
+fim 00000084
+
+Symbol: fim
+   Definitions
+      At line 95 in file exemplo.s
+   Uses
+      At line 70 in file exemplo.s
+Comment: fim used once
+resetaR1 0000007A
+
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
+Symbol: resetaR1
+   Definitions
+      At line 91 in file exemplo.s
+   Uses
+      At line 75 in file exemplo.s
+Comment: resetaR1 used once
+8 symbols
+343 symbols in table
