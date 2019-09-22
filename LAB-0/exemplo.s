@@ -4,37 +4,37 @@
 ; 12/03/2018
 
 ; -------------------------------------------------------------------------------
-        THUMB                        ; InstruÁıes do tipo Thumb-2
+        THUMB                        ; Instru√ß√µes do tipo Thumb-2
 ; -------------------------------------------------------------------------------
-; DeclaraÁıes EQU - Defines
+; Declara√ß√µes EQU - Defines
 ;<NOME>         EQU <VALOR>
 ; -------------------------------------------------------------------------------
-; ¡rea de Dados - DeclaraÁıes de vari·veis
+; √Årea de Dados - Declara√ß√µes de vari√°veis
 		AREA  DATA, ALIGN=2
-		; Se alguma vari·vel for chamada em outro arquivo
-		;EXPORT  <var> [DATA,SIZE=<tam>]   ; Permite chamar a vari·vel <var> a 
+		; Se alguma vari√°vel for chamada em outro arquivo
+		;EXPORT  <var> [DATA,SIZE=<tam>]   ; Permite chamar a vari√°vel <var> a 
 		                                   ; partir de outro arquivo
-;<var>	SPACE <tam>                        ; Declara uma vari·vel de nome <var>
+;<var>	SPACE <tam>                        ; Declara uma vari√°vel de nome <var>
                                            ; de <tam> bytes a partir da primeira 
-                                           ; posiÁ„o da RAM		
+                                           ; posi√ß√£o da RAM		
 
 ; -------------------------------------------------------------------------------
-; ¡rea de CÛdigo - Tudo abaixo da diretiva a seguir ser· armazenado na memÛria de 
-;                  cÛdigo
+; √Årea de C√≥digo - Tudo abaixo da diretiva a seguir ser√° armazenado na mem√≥ria de 
+;                  c√≥digo
         AREA    |.text|, CODE, READONLY, ALIGN=2
 
-		; Se alguma funÁ„o do arquivo for chamada em outro arquivo	
-        EXPORT Start                ; Permite chamar a funÁ„o Start a partir de 
+		; Se alguma fun√ß√£o do arquivo for chamada em outro arquivo	
+        EXPORT Start                ; Permite chamar a fun√ß√£o Start a partir de 
 			                        ; outro arquivo. No caso startup.s
 									
-		; Se chamar alguma funÁ„o externa	
+		; Se chamar alguma fun√ß√£o externa	
         ;IMPORT <func>              ; Permite chamar dentro deste arquivo uma 
-									; funÁ„o <func>
+									; fun√ß√£o <func>
 
 ; -------------------------------------------------------------------------------
-; FunÁ„o main()
+; Fun√ß√£o main()
 Start  
-; Comece o cÛdigo aqui <======================================================
+; Comece o c√≥digo aqui <======================================================
 
 ;	LAB 0: BUBBLE SORT
 	MOV R1, #0x0500 ; R1 = ENDERECO BASE
@@ -93,5 +93,5 @@ resetaR1
 	MOVT R1, #0x2000 
 	BX LR
 fim	NOP
-	ALIGN                           ; garante que o fim da seÁ„o est· alinhada 
+	ALIGN                           ; garante que o fim da se√ß√£o est√° alinhada 
     END                             ; fim do arquivo

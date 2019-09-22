@@ -3,15 +3,15 @@
 ; Prof. Guilherme Peron
 ; Rev1: 10/03/2018
 ; Rev2: 10/04/2019
-; Este programa espera o usu·rio apertar a chave USR_SW1 e/ou a chave USR_SW2.
-; Caso o usu·rio pressione a chave USR_SW1, acender· o LED3 (PF4). Caso o usu·rio pressione 
-; a chave USR_SW2, acender· o LED4 (PF0). Caso as duas chaves sejam pressionadas, os dois 
+; Este programa espera o usu√°rio apertar a chave USR_SW1 e/ou a chave USR_SW2.
+; Caso o usu√°rio pressione a chave USR_SW1, acender√° o LED3 (PF4). Caso o usu√°rio pressione 
+; a chave USR_SW2, acender√° o LED4 (PF0). Caso as duas chaves sejam pressionadas, os dois 
 ; LEDs acendem.
 
 ; -------------------------------------------------------------------------------
-        THUMB                        ; InstruÁıes do tipo Thumb-2
+        THUMB                        ; Instru√ß√µes do tipo Thumb-2
 ; -------------------------------------------------------------------------------
-; DeclaraÁıes EQU - Defines
+; Declara√ß√µes EQU - Defines
 ;<NOME>         EQU <VALOR>
 ; ========================
 PASSO0 EQU 0x10000000
@@ -23,27 +23,27 @@ PASSO5 EQU 0x00000100
 PASSO6 EQU 0x01000010
 PASSO7 EQU 0x01000001
 ; -------------------------------------------------------------------------------
-; ¡rea de Dados - DeclaraÁıes de vari·veis
+; √Årea de Dados - Declara√ß√µes de vari√°veis
 		AREA  DATA, ALIGN=2
-		; Se alguma vari·vel for chamada em outro arquivo
-		;EXPORT  <var> [DATA,SIZE=<tam>]   ; Permite chamar a vari·vel <var> a 
+		; Se alguma vari√°vel for chamada em outro arquivo
+		;EXPORT  <var> [DATA,SIZE=<tam>]   ; Permite chamar a vari√°vel <var> a 
 		                                   ; partir de outro arquivo
-;<var>	SPACE <tam>                        ; Declara uma vari·vel de nome <var>
+;<var>	SPACE <tam>                        ; Declara uma vari√°vel de nome <var>
                                            ; de <tam> bytes a partir da primeira 
-                                           ; posiÁ„o da RAM		
+                                           ; posi√ß√£o da RAM		
 
 ; -------------------------------------------------------------------------------
-; ¡rea de CÛdigo - Tudo abaixo da diretiva a seguir ser· armazenado na memÛria de 
-;                  cÛdigo
+; √Årea de C√≥digo - Tudo abaixo da diretiva a seguir ser√° armazenado na mem√≥ria de 
+;                  c√≥digo
         AREA    |.text|, CODE, READONLY, ALIGN=2
 
-		; Se alguma funÁ„o do arquivo for chamada em outro arquivo	
-        EXPORT Start                ; Permite chamar a funÁ„o Start a partir de 
+		; Se alguma fun√ß√£o do arquivo for chamada em outro arquivo	
+        EXPORT Start                ; Permite chamar a fun√ß√£o Start a partir de 
 			                        ; outro arquivo. No caso startup.s
 									
-		; Se chamar alguma funÁ„o externa	
+		; Se chamar alguma fun√ß√£o externa	
         ;IMPORT <func>              ; Permite chamar dentro deste arquivo uma 
-									; funÁ„o <func>
+									; fun√ß√£o <func>
 		IMPORT  GPIO_Init
 		IMPORT Liga_LED
 		IMPORT Desliga_LED
@@ -60,7 +60,7 @@ PASSO7 EQU 0x01000001
 		IMPORT PLL_Init
 
 ; -------------------------------------------------------------------------------
-; FunÁ„o main()
+; Fun√ß√£o main()
 Start  			
 	BL GPIO_Init                 ;Chama a subrotina que inicializa os GPIO
 	BL PLL_Init					 ;80MHz
@@ -68,8 +68,8 @@ Start
 	
 	MOV R8,  #0 ; Passo do cavaleiro
 	MOV R9,  #1 ; Incremento
-	MOV R10, #0 ; DÌgito 0
-	MOV R11, #0 ; DÌgito 1
+	MOV R10, #0 ; D√≠gito 0
+	MOV R11, #0 ; D√≠gito 1
 	
 MainLoop
 	MOV R7,  #0 ; Divisor de clock;
@@ -161,7 +161,7 @@ MostraPassoCavaleiro
 	BL Desliga_7segDireita
 	BL Desliga_7segEsquerda
 	MOV R0, R8
-	BL DecodePassoCavaleiro ; R1 <= CÛdigo do dÌgito
+	BL DecodePassoCavaleiro ; R1 <= C√≥digo do d√≠gito
 	MOV R0, R1
 	BL LED_Or_7seg_Output
 	BL Liga_LED
@@ -174,7 +174,7 @@ MostraDigito0
 	BL Desliga_LED
 	BL Desliga_7segEsquerda
 	MOV R0, R10
-	BL Decode7seg ; R1 <= CÛdigo do dÌgito
+	BL Decode7seg ; R1 <= C√≥digo do d√≠gito
 	MOV R0, R1
 	BL LED_Or_7seg_Output
 	BL Liga_7segDireita
@@ -187,7 +187,7 @@ MostraDigito1
 	BL Desliga_LED
 	BL Desliga_7segDireita
 	MOV R0, R11
-	BL Decode7seg ; R1 <= CÛdigo do dÌgito
+	BL Decode7seg ; R1 <= C√≥digo do d√≠gito
 	MOV R0, R1
 	BL LED_Or_7seg_Output
 	BL Liga_7segEsquerda

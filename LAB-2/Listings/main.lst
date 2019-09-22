@@ -9,99 +9,109 @@ ARM Macro Assembler    Page 1
     3 00000000         ; Prof. Guilherme Peron
     4 00000000         ; Rev1: 10/03/2018
     5 00000000         ; Rev2: 10/04/2019
-    6 00000000         ; Este programa espera o usu·rio apertar a chave USR_SW1
-                        e/ou a chave USR_SW2.
-    7 00000000         ; Caso o usu·rio pressione a chave USR_SW1, acender· o L
-                       ED3 (PF4). Caso o usu·rio pressione 
-    8 00000000         ; a chave USR_SW2, acender· o LED4 (PF0). Caso as duas c
-                       haves sejam pressionadas, os dois 
+    6 00000000         ; Este programa espera o usu√°rio apertar a chave USR_SW
+                       1 e/ou a chave USR_SW2.
+    7 00000000         ; Caso o usu√°rio pressione a chave USR_SW1, acender√° o
+                        LED3 (PF4). Caso o usu√°rio pressione 
+    8 00000000         ; a chave USR_SW2, acender√° o LED4 (PF0). Caso as duas 
+                       chaves sejam pressionadas, os dois 
     9 00000000         ; LEDs acendem.
    10 00000000         
    11 00000000         
    12 00000000         
    13 00000000         ; ------------------------------------------------------
                        -------------------------
-   14 00000000                 THUMB                        ; InstruÁıes do tip
-                                                            o Thumb-2
+   14 00000000                 THUMB                        ; Instru√ß√µes do t
+                                                            ipo Thumb-2
    15 00000000         ; ------------------------------------------------------
                        -------------------------
-   16 00000000         ; DeclaraÁıes EQU - Defines
+   16 00000000         ; Declara√ß√µes EQU - Defines
    17 00000000         ;<NOME>         EQU <VALOR>
    18 00000000         ; ========================
    19 00000000         
-   20 00000000         ; ------------------------------------------------------
+   20 00000000         
+   21 00000000         ; ------------------------------------------------------
                        -------------------------
-   21 00000000         ; ¡rea de Dados - DeclaraÁıes de vari·veis
-   22 00000000                 AREA             DATA, ALIGN=2
-   23 00000000         ; Se alguma vari·vel for chamada em outro arquivo
-   24 00000000         ;EXPORT  <var> [DATA,SIZE=<tam>]   ; Permite chamar a va
-                       ri·vel <var> a 
-   25 00000000         ; partir de outro arquivo
-   26 00000000         ;<var> SPACE <tam>                        ; Declara uma 
-                       vari·vel de nome <var>
-   27 00000000         ; de <tam> bytes a partir da primeira 
-   28 00000000         ; posiÁ„o da RAM  
-   29 00000000         
-   30 00000000         ; ------------------------------------------------------
+   22 00000000         ; √Årea de Dados - Declara√ß√µes de vari√°veis
+   23 00000000                 AREA             DATA, ALIGN=2
+   24 00000000         ; Se alguma vari√°vel for chamada em outro arquivo
+   25 00000000         ;EXPORT  <var> [DATA,SIZE=<tam>]   ; Permite chamar a va
+                       ri√°vel <var> a 
+   26 00000000         ; partir de outro arquivo
+   27 00000000         ;<var> SPACE <tam>                        ; Declara uma 
+                       vari√°vel de nome <var>
+   28 00000000         ; de <tam> bytes a partir da primeira 
+   29 00000000         ; posi√ß√£o da RAM  
+   30 00000000         
+   31 00000000         ; ------------------------------------------------------
                        -------------------------
-   31 00000000         ; ¡rea de CÛdigo - Tudo abaixo da diretiva a seguir ser·
-                        armazenado na memÛria de 
-   32 00000000         ;                  cÛdigo
-   33 00000000                 AREA             |.text|, CODE, READONLY, ALIGN=
+   32 00000000         ; √Årea de C√≥digo - Tudo abaixo da diretiva a seguir se
+                       r√° armazenado na mem√≥ria de 
+   33 00000000         ;                  c√≥digo
+   34 00000000                 AREA             |.text|, CODE, READONLY, ALIGN=
 2
-   34 00000000         
-   35 00000000         ; Se alguma funÁ„o do arquivo for chamada em outro arqui
-                       vo 
-   36 00000000                 EXPORT           Start       ; Permite chamar a 
-                                                            funÁ„o Start a part
-                                                            ir de 
-   37 00000000         ; outro arquivo. No caso startup.s
-   38 00000000         
-   39 00000000         ; Se chamar alguma funÁ„o externa 
-   40 00000000         ;IMPORT <func>              ; Permite chamar dentro dest
+   35 00000000         
+   36 00000000         ; Se alguma fun√ß√£o do arquivo for chamada em outro arq
+                       uivo 
+   37 00000000                 EXPORT           Start       ; Permite chamar a 
+                                                            fun√ß√£o Start a pa
+                                                            rtir de 
+   38 00000000         ; outro arquivo. No caso startup.s
+   39 00000000         
+   40 00000000         ; Se chamar alguma fun√ß√£o externa 
+   41 00000000         ;IMPORT <func>              ; Permite chamar dentro dest
                        e arquivo uma 
-   41 00000000         ; funÁ„o <func>
-   42 00000000                 IMPORT           GPIO_Init
-   43 00000000                 IMPORT           PLL_Init
+   42 00000000         ; fun√ß√£o <func>
+   43 00000000                 IMPORT           GPIO_Init
 
 
 
 ARM Macro Assembler    Page 2 
 
 
-   44 00000000                 IMPORT           SysTick_Init
-   45 00000000         
-   46 00000000         ; ------------------------------------------------------
+   44 00000000                 IMPORT           PLL_Init
+   45 00000000                 IMPORT           SysTick_Init
+   46 00000000                 IMPORT           LCD_Init
+   47 00000000                 IMPORT           LCD_ImprimeString
+   48 00000000                 IMPORT           LCD_SetaCursor
+   49 00000000         
+   50 00000000 4F 69 20 
+              46 72 61 
+              6E 20 5E 
+              5F 5E 00 MSG1_STR
+                               DCB              "Oi Fran ^_^",0
+   51 0000000C 00      MSG2_STR
+                               DCB              "",0
+   52 0000000D         
+   53 0000000D         ; ------------------------------------------------------
                        -------------------------
-   47 00000000         ; FunÁ„o main()
-   48 00000000         Start
-   49 00000000 F7FF FFFE       BL               PLL_Init    ;80MHz
-   50 00000004 F7FF FFFE       BL               SysTick_Init ;Inicia SysTick
-   51 00000008 F7FF FFFE       BL               GPIO_Init   ;Chama a subrotina 
+   54 0000000D         ; Fun√ß√£o main()
+   55 0000000D         Start
+   56 0000000D 00 F7FF 
+              FFFE             BL               PLL_Init    ;80MHz
+   57 00000012 F7FF FFFE       BL               SysTick_Init ;Inicia SysTick
+   58 00000016 F7FF FFFE       BL               GPIO_Init   ;Chama a subrotina 
                                                             que inicializa os G
-                                                            PIO                
-                                                                       s
-   52 0000000C         
-   53 0000000C         ALIGN
-   54 0000000C         END
-   55 0000000C         
-   56 0000000C         ;Verifica_SW1 
-   57 0000000C         ; CMP R0, #2_00000010      
-   58 0000000C         ; BNE Verifica_SW2             
-   59 0000000C         ; BL IncrementaPasso           
-   60 0000000C         ; B MainLoop                   
-   61 0000000C         ;Verifica_SW2 
-   62 0000000C         ; CMP R0, #2_00000001      
-   63 0000000C         ; BNE MainLoop          
-   64 0000000C         ; BL DecrementaPasso         
-   65 0000000C         ; B MainLoop        
-                       
+                                                            PIOs
+   59 0000001A F7FF FFFE       BL               LCD_Init
+   60 0000001E 4806            LDR              R0, =MSG1_STR
+   61 00000020 F7FF FFFE       BL               LCD_ImprimeString
+   62 00000024 F04F 0001       MOV              R0, #1
+   63 00000028 F04F 0100       MOV              R1, #0
+   64 0000002C F7FF FFFE       BL               LCD_SetaCursor
+   65 00000030 4802            LDR              R0, =MSG2_STR
+   66 00000032 F7FF FFFE       BL               LCD_ImprimeString
+   67 00000036         
+   68 00000036 00 00           ALIGN
+   69 00000038                 END
+              00000000 
+              00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
 erwork --depend=.\objects\main.d -o.\objects\main.o -I.\RTE\_Target_1 -IC:\User
-s\joaoz\AppData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C129 -IC:
-\Keil_v5\ARM\CMSIS\Include --predefine="__EVAL SETA 1" --predefine="__UVISION_V
-ERSION SETA 528" --predefine="TM4C1294NCPDT SETA 1" --list=.\listings\main.lst 
-main.s
+s\Shigueo\AppData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C129 -I
+C:\Keil_v5\ARM\CMSIS\Include --predefine="__EVAL SETA 1" --predefine="__UVISION
+_VERSION SETA 528" --predefine="TM4C1294NCPDT SETA 1" --list=.\listings\main.ls
+t main.s
 
 
 
@@ -112,7 +122,7 @@ DATA 00000000
 
 Symbol: DATA
    Definitions
-      At line 22 in file main.s
+      At line 23 in file main.s
    Uses
       None
 Comment: DATA unused
@@ -127,33 +137,33 @@ Relocatable symbols
 
 Symbol: .text
    Definitions
-      At line 33 in file main.s
+      At line 34 in file main.s
    Uses
       None
 Comment: .text unused
-ALIGN 0000000C
+MSG1_STR 00000000
 
-Symbol: ALIGN
+Symbol: MSG1_STR
    Definitions
-      At line 53 in file main.s
+      At line 50 in file main.s
    Uses
-      None
-Comment: ALIGN unused
-END 0000000C
+      At line 60 in file main.s
+Comment: MSG1_STR used once
+MSG2_STR 0000000C
 
-Symbol: END
+Symbol: MSG2_STR
    Definitions
-      At line 54 in file main.s
+      At line 51 in file main.s
    Uses
-      None
-Comment: END unused
-Start 00000000
+      At line 65 in file main.s
+Comment: MSG2_STR used once
+Start 0000000D
 
 Symbol: Start
    Definitions
-      At line 48 in file main.s
+      At line 55 in file main.s
    Uses
-      At line 36 in file main.s
+      At line 37 in file main.s
 Comment: Start used once
 4 symbols
 
@@ -166,25 +176,50 @@ GPIO_Init 00000000
 
 Symbol: GPIO_Init
    Definitions
-      At line 42 in file main.s
+      At line 43 in file main.s
    Uses
-      At line 51 in file main.s
+      At line 58 in file main.s
 Comment: GPIO_Init used once
+LCD_ImprimeString 00000000
+
+Symbol: LCD_ImprimeString
+   Definitions
+      At line 47 in file main.s
+   Uses
+      At line 61 in file main.s
+      At line 66 in file main.s
+
+LCD_Init 00000000
+
+Symbol: LCD_Init
+   Definitions
+      At line 46 in file main.s
+   Uses
+      At line 59 in file main.s
+Comment: LCD_Init used once
+LCD_SetaCursor 00000000
+
+Symbol: LCD_SetaCursor
+   Definitions
+      At line 48 in file main.s
+   Uses
+      At line 64 in file main.s
+Comment: LCD_SetaCursor used once
 PLL_Init 00000000
 
 Symbol: PLL_Init
    Definitions
-      At line 43 in file main.s
+      At line 44 in file main.s
    Uses
-      At line 49 in file main.s
+      At line 56 in file main.s
 Comment: PLL_Init used once
 SysTick_Init 00000000
 
 Symbol: SysTick_Init
    Definitions
-      At line 44 in file main.s
+      At line 45 in file main.s
    Uses
-      At line 50 in file main.s
+      At line 57 in file main.s
 Comment: SysTick_Init used once
-3 symbols
-342 symbols in table
+6 symbols
+347 symbols in table

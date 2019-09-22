@@ -980,10 +980,10 @@ ARM Macro Assembler    Page 16
 
 
 erwork --depend=.\objects\startup.d -o.\objects\startup.o -I.\RTE\_Target_1 -IC
-:\Users\joaoz\AppData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C12
-9 -IC:\Keil_v5\ARM\CMSIS\Include --predefine="__EVAL SETA 1" --predefine="__UVI
-SION_VERSION SETA 528" --predefine="TM4C1294NCPDT SETA 1" --list=.\listings\sta
-rtup.lst startup.s
+:\Users\Shigueo\AppData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C
+129 -IC:\Keil_v5\ARM\CMSIS\Include --predefine="__EVAL SETA 1" --predefine="__U
+VISION_VERSION SETA 528" --predefine="TM4C1294NCPDT SETA 1" --list=.\listings\s
+tartup.lst startup.s
 
 
 

@@ -3,63 +3,69 @@
 ; Prof. Guilherme Peron
 ; Rev1: 10/03/2018
 ; Rev2: 10/04/2019
-; Este programa espera o usu·rio apertar a chave USR_SW1 e/ou a chave USR_SW2.
-; Caso o usu·rio pressione a chave USR_SW1, acender· o LED3 (PF4). Caso o usu·rio pressione 
-; a chave USR_SW2, acender· o LED4 (PF0). Caso as duas chaves sejam pressionadas, os dois 
+; Este programa espera o usu√°rio apertar a chave USR_SW1 e/ou a chave USR_SW2.
+; Caso o usu√°rio pressione a chave USR_SW1, acender√° o LED3 (PF4). Caso o usu√°rio pressione 
+; a chave USR_SW2, acender√° o LED4 (PF0). Caso as duas chaves sejam pressionadas, os dois 
 ; LEDs acendem.
 
 		
 
 ; -------------------------------------------------------------------------------
-        THUMB                        ; InstruÁıes do tipo Thumb-2
+        THUMB                        ; Instru√ß√µes do tipo Thumb-2
 ; -------------------------------------------------------------------------------
-; DeclaraÁıes EQU - Defines
+; Declara√ß√µes EQU - Defines
 ;<NOME>         EQU <VALOR>
 ; ========================
 
-; -------------------------------------------------------------------------------
-; ¡rea de Dados - DeclaraÁıes de vari·veis
-		AREA  DATA, ALIGN=2
-		; Se alguma vari·vel for chamada em outro arquivo
-		;EXPORT  <var> [DATA,SIZE=<tam>]   ; Permite chamar a vari·vel <var> a 
-		                                   ; partir de outro arquivo
-;<var>	SPACE <tam>                        ; Declara uma vari·vel de nome <var>
-                                           ; de <tam> bytes a partir da primeira 
-                                           ; posiÁ„o da RAM		
 
 ; -------------------------------------------------------------------------------
-; ¡rea de CÛdigo - Tudo abaixo da diretiva a seguir ser· armazenado na memÛria de 
-;                  cÛdigo
+; √Årea de Dados - Declara√ß√µes de vari√°veis
+		AREA  DATA, ALIGN=2
+		; Se alguma vari√°vel for chamada em outro arquivo
+		;EXPORT  <var> [DATA,SIZE=<tam>]   ; Permite chamar a vari√°vel <var> a 
+		                                   ; partir de outro arquivo
+;<var>	SPACE <tam>                        ; Declara uma vari√°vel de nome <var>
+                                           ; de <tam> bytes a partir da primeira 
+                                           ; posi√ß√£o da RAM		
+
+; -------------------------------------------------------------------------------
+; √Årea de C√≥digo - Tudo abaixo da diretiva a seguir ser√° armazenado na mem√≥ria de 
+;                  c√≥digo
         AREA    |.text|, CODE, READONLY, ALIGN=2
 
-		; Se alguma funÁ„o do arquivo for chamada em outro arquivo	
-        EXPORT Start                ; Permite chamar a funÁ„o Start a partir de 
+		; Se alguma fun√ß√£o do arquivo for chamada em outro arquivo	
+        EXPORT Start                ; Permite chamar a fun√ß√£o Start a partir de 
 			                        ; outro arquivo. No caso startup.s
 									
-		; Se chamar alguma funÁ„o externa	
+		; Se chamar alguma fun√ß√£o externa	
         ;IMPORT <func>              ; Permite chamar dentro deste arquivo uma 
-									; funÁ„o <func>
+									; fun√ß√£o <func>
 		IMPORT GPIO_Init
 		IMPORT PLL_Init
 		IMPORT SysTick_Init
+		IMPORT LCD_Init
+		IMPORT LCD_ImprimeString
+		IMPORT LCD_SetaCursor
+			
+MSG1_STR DCB "UTFPR",0
+MSG2_STR DCB "Velociraptor",0
 
 ; -------------------------------------------------------------------------------
-; FunÁ„o main()
+; Fun√ß√£o main()
 Start  			
 	BL PLL_Init					 ;80MHz
 	BL SysTick_Init				 ;Inicia SysTick
-	BL GPIO_Init   ;Chama a subrotina que inicializa os GPIO                           s
+	BL GPIO_Init   ;Chama a subrotina que inicializa os GPIOs
+	BL LCD_Init
+	LDR R0, =MSG1_STR
+	BL LCD_ImprimeString
+	MOV R0, #1
+	MOV R1, #0
+	BL LCD_SetaCursor
+	LDR R0, =MSG2_STR
+	BL LCD_ImprimeString
+	
+	ALIGN                        
+	END                         
 
-ALIGN                        
-END                         
 
-;Verifica_SW1	
-;	CMP R0, #2_00000010	     
-;	BNE Verifica_SW2             
-;	BL IncrementaPasso    		     
-;	B MainLoop                   
-;Verifica_SW2	
-;	CMP R0, #2_00000001	     
-;	BNE MainLoop          
-;	BL DecrementaPasso   	     
-;	B MainLoop        
