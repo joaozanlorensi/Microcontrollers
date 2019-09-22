@@ -47,8 +47,8 @@
 		IMPORT LCD_ImprimeString
 		IMPORT LCD_SetaCursor
 			
-MSG1_STR DCB "UTFPR",0
-MSG2_STR DCB "Velociraptor",0
+MSG1_STR DCB "Tabuada do 3",0
+MSG2_STR DCB "3 x 1 = 3 ",0
 
 ; -------------------------------------------------------------------------------
 ; Função main()
