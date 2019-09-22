@@ -11,6 +11,8 @@
 ; Definições de Valores
 BIT0	EQU 2_0001
 BIT1	EQU 2_0010
+BIT2	EQU 2_0100
+BIT3	EQU 2_1000
 ; ========================
 ; Definições dos Registradores Gerais
 SYSCTL_RCGCGPIO_R	 EQU	0x400FE608
@@ -53,6 +55,19 @@ GPIO_PORTK_CR_R         EQU	0x40061524
 GPIO_PORTK_AMSEL_R      EQU	0x40061528
 GPIO_PORTK_PCTL_R       EQU	0x4006152C
 GPIO_PORTK				EQU 2_000001000000000
+
+; PORT L
+GPIO_PORTL_DATA_R       EQU		0x400623FC
+GPIO_PORTL_DIR_R        EQU		0x40062400
+GPIO_PORTL_AFSEL_R      EQU		0x40062420
+GPIO_PORTL_PUR_R        EQU		0x40062510
+GPIO_PORTL_DEN_R        EQU		0x4006251C
+GPIO_PORTL_LOCK_R       EQU		0x40062520
+GPIO_PORTL_CR_R         EQU		0x40062524
+GPIO_PORTL_AMSEL_R      EQU		0x40062528
+GPIO_PORTL_PCTL_R       EQU		0x4006252C
+GPIO_PORTL_IS_R         EQU		0x40062404
+GPIO_PORTL				EQU 2_000010000000000
 	
 ; Valores para o LCD
 LCD_BUS        EQU GPIO_PORTK_DATA_R
@@ -70,6 +85,19 @@ SDISPLAY_RIGHT EQU 0x1C
 DISPLAY_MODE   EQU 0x0C ; 0x0F para Cursor e Blink ligados | 0x0C para ambos desligados | 0x0D para Cursor desligado e Blink ligado | 0x0E para Cursor ligado e Blink Desligado
 DISPLAY_OFF	   EQU 0x03
 
+TECLADO_COLS 	EQU GPIO_PORTM_DATA_R
+TECLADO_LINS 	EQU GPIO_PORTL_DATA_R
+COLS			EQU 2_01110000
+COL_0			EQU 2_00010000
+COL_1			EQU 2_00100000
+COL_2			EQU 2_01000000
+LIN_0			EQU 2_00001110
+LIN_1			EQU 2_00001101
+LIN_2			EQU 2_00001011
+LIN_3			EQU 2_00000111
+
+BOUNCE_DELAY		EQU 300
+
 ; -------------------------------------------------------------------------------
 ; Área de Código - Tudo abaixo da diretiva a seguir será armazenado na memória de 
 ;                  código
@@ -79,6 +107,7 @@ DISPLAY_OFF	   EQU 0x03
 	EXPORT LCD_Init
 	EXPORT LCD_ImprimeString
 	EXPORT LCD_SetaCursor
+	EXPORT LeTeclado
 
 	IMPORT SysTick_Wait1ms
         								
@@ -92,9 +121,10 @@ GPIO_Init
 ; após isso verificar no PRGPIO se a porta está pronta para uso.
 ; enable clock to GPIOF at clock gating register
 	LDR     R0, =SYSCTL_RCGCGPIO_R  		;Carrega o endereço do registrador RCGCGPIO
-	MOV		R1, #GPIO_PORTJ                 ;Seta o bit da porta A
+	MOV		R1, #GPIO_PORTJ                 
 	ORR 	R1, #GPIO_PORTM
 	ORR 	R1, #GPIO_PORTK
+	ORR 	R1, #GPIO_PORTL
 	STR     R1, [R0]						;Move para a memória os bits das portas no endereço do RCGCGPIO
 	LDR     R0, =SYSCTL_PRGPIO_R			;Carrega o endereço do PRGPIO para esperar os GPIO ficarem prontos
 EsperaGPIO  
@@ -102,66 +132,81 @@ EsperaGPIO
 	MOV     R2, #GPIO_PORTJ                 ;Seta os bits correspondentes às portas para fazer a comparação
 	ORR     R2, #GPIO_PORTM
 	ORR     R2, #GPIO_PORTK
+	ORR     R2, #GPIO_PORTL
 	TST     R1, R2							;ANDS de R1 com R2
 	BEQ     EsperaGPIO					    ;Se o flag Z=1, volta para o laço. Senão continua executando
  
 ; 2. Limpar o AMSEL para desabilitar a analógica
-	MOV     R1, #0x00						;Colocar 0 no registrador para desabilitar a função analógica
-	LDR     R0, =GPIO_PORTJ_AHB_AMSEL_R     ;Carrega o R0 com o endere?o do AMSEL para a porta J
+	MOV     R1, #0x00
+	LDR     R0, =GPIO_PORTJ_AHB_AMSEL_R
 	STR     R1, [R0]
-	LDR     R0, =GPIO_PORTM_AMSEL_R		;Carrega o R0 com o endereço do AMSEL para a porta P
+	LDR     R0, =GPIO_PORTM_AMSEL_R
 	STR     R1, [R0]
-	LDR     R0, =GPIO_PORTK_AMSEL_R		;Carrega o R0 com o endereço do AMSEL para a porta P
+	LDR     R0, =GPIO_PORTK_AMSEL_R
+	STR     R1, [R0]
+	LDR     R0, =GPIO_PORTL_AMSEL_R
 	STR     R1, [R0]
  
 ; 3. Limpar PCTL para selecionar o GPIO
-	MOV     R1, #0x00					    ;Colocar 0 no registrador para selecionar o modo GPIO
-	LDR     R0, =GPIO_PORTJ_AHB_PCTL_R		;Carrega o R0 com o endere?o do PCTL para a porta J
+	MOV     R1, #0x00
+	LDR     R0, =GPIO_PORTJ_AHB_PCTL_R
 	STR     R1, [R0]
-	LDR     R0, =GPIO_PORTM_PCTL_R		;Carrega o R0 com o endere?o do PCTL para a porta J
+	LDR     R0, =GPIO_PORTM_PCTL_R
 	STR     R1, [R0]
-	LDR     R0, =GPIO_PORTK_PCTL_R		;Carrega o R0 com o endere?o do PCTL para a porta J
+	LDR     R0, =GPIO_PORTK_PCTL_R
+	STR     R1, [R0]
+	LDR     R0, =GPIO_PORTL_PCTL_R
 	STR     R1, [R0]
 ; 4. DIR para 0 se for entrada, 1 se for saída
-	LDR     R0, =GPIO_PORTJ_AHB_DIR_R		;Carrega o R0 com o endere?o do DIR para a porta J
-	MOV     R1, #0x00               		;Colocar 0 no registrador DIR para funcionar com entrada
+	LDR     R0, =GPIO_PORTJ_AHB_DIR_R
+	MOV     R1, #0x00
 	STR     R1, [R0]
 	
-	LDR     R0, =GPIO_PORTM_DIR_R		;Carrega o R0 com o endere?o do DIR para a porta J
-	MOV     R1, #0xFF               		;Colocar 0 no registrador DIR para funcionar com entrada
+	LDR     R0, =GPIO_PORTM_DIR_R
+	MOV     R1, #0xFF
 	STR     R1, [R0]
 	
-	LDR     R0, =GPIO_PORTK_DIR_R		;Carrega o R0 com o endere?o do DIR para a porta J
-	MOV     R1, #0xFF               		;Colocar 0 no registrador DIR para funcionar com entrada
+	LDR     R0, =GPIO_PORTK_DIR_R
+	MOV     R1, #0xFF
+	STR     R1, [R0]
+
+	LDR     R0, =GPIO_PORTL_DIR_R
+	MOV     R1, #0x00
 	STR     R1, [R0]
 			
 ; 5. Limpar os bits AFSEL para 0 para selecionar GPIO 
 ;    Sem função alternativa
 	MOV 	R1, #0
-	LDR     R0, =GPIO_PORTJ_AHB_AFSEL_R		;Carrega o endere?o do AFSEL da porta J
+	LDR     R0, =GPIO_PORTJ_AHB_AFSEL_R
 	STR     R1, [R0]
-	LDR     R0, =GPIO_PORTM_AFSEL_R		;Carrega o endere?o do AFSEL da porta J
+	LDR     R0, =GPIO_PORTM_AFSEL_R
 	STR     R1, [R0]
-	LDR     R0, =GPIO_PORTK_AFSEL_R		;Carrega o endere?o do AFSEL da porta J
+	LDR     R0, =GPIO_PORTK_AFSEL_R
 	STR     R1, [R0]
 			
 ; 6. Setar os bits de DEN para habilitar I/O digital
- 	LDR     R0, =GPIO_PORTJ_AHB_DEN_R		;Carrega o endere?o do DEN
-	LDR     R1, [R0]						;Ler da mem?ria o registrador GPIO_PORTJ_AHB_DEN_R
-	MOV     R2, #2_00000011					;Habilitar funcionalidade digital na DEN
-	ORR     R1, R2							;Setar bits sem sobrescrever os demais
+ 	LDR     R0, =GPIO_PORTJ_AHB_DEN_R
+	LDR     R1, [R0]
+	MOV     R2, #2_00000011
+	ORR     R1, R2
 	STR     R1, [R0]
 	
-	LDR     R0, =GPIO_PORTM_DEN_R		;Carrega o endere?o do DEN
-	LDR     R1, [R0]						;Ler da mem?ria o registrador GPIO_PORTJ_AHB_DEN_R
-	MOV     R2, #2_00000111					;Habilitar funcionalidade digital na DEN
-	ORR     R1, R2							;Setar bits sem sobrescrever os demais
+	LDR     R0, =GPIO_PORTM_DEN_R
+	LDR     R1, [R0]
+	MOV     R2, #2_11110111
+	ORR     R1, R2
 	STR     R1, [R0]
 	
-	LDR     R0, =GPIO_PORTK_DEN_R		;Carrega o endere?o do DEN
-	LDR     R1, [R0]						;Ler da mem?ria o registrador GPIO_PORTJ_AHB_DEN_R
-	MOV     R2, #2_11111111					;Habilitar funcionalidade digital na DEN
-	ORR     R1, R2							;Setar bits sem sobrescrever os demais
+	LDR     R0, =GPIO_PORTK_DEN_R
+	LDR     R1, [R0]
+	MOV     R2, #2_11111111
+	ORR     R1, R2
+	STR     R1, [R0]
+
+	LDR     R0, =GPIO_PORTL_DEN_R
+	LDR     R1, [R0]
+	MOV     R2, #2_00001111
+	ORR     R1, R2
 	STR     R1, [R0]
 			
 ; 7. Para habilitar resistor de pull-up interno, setar PUR para 1
@@ -169,6 +214,13 @@ EsperaGPIO
 	MOV     R1, #BIT0						;Habilitar funcionalidade digital de resistor de pull-up 
 	ORR     R1, #BIT1						;nos bits 0 e 1
 	STR     R1, [R0]						;Escreve no registrador da mem?ria do resistor de pull-up
+
+	LDR     R0, =GPIO_PORTL_PUR_R		
+	MOV     R1, #BIT0						
+	ORR     R1, #BIT1						
+	ORR     R1, #BIT2						
+	ORR     R1, #BIT3						
+	STR     R1, [R0]						
 	
 	BX LR;
 
@@ -292,7 +344,207 @@ DadoLCD
 	POP{R1,R2,R3,LR}
 	; Retorna
 	BX LR
-	
+
+; Teclado_Leitura
+; Entradas: Nenhuma
+; Saída: R0 - Número correspondente à tecla pressionada
+LeTeclado
+	PUSH {R1,R2,LR}
+Col0
+	; Escreve 0 na primeira coluna
+	LDR R2, =TECLADO_COLS
+	LDR R0, [R2]
+	BIC R0, #COLS
+	ORR R0, #COL_1
+	ORR R0, #COL_2
+	STR R0, [R2]
+	; Delay de 10ms
+	MOV R0, #10
+	BL SysTick_Wait1ms
+
+	; Lê valor das linhas
+	LDR R2, =TECLADO_LINS
+	LDR R1, [R2]
+
+Col0_Linha0
+	; Verifica se a linha 0 foi pressionada
+	CMP R1, #LIN_0
+	BNE Col0_Linha1
+	; Espera por bounce
+	MOV R0, #BOUNCE_DELAY
+	BL SysTick_Wait1ms
+Espera_Col0_Linha0
+	CMP R1, #LIN_0
+	BNE Espera_Col0_Linha0
+	MOV R0, #1
+	B RetResultado
+
+Col0_Linha1
+	CMP R1, #LIN_1
+	BNE Col0_Linha2
+	; Espera por bounce
+	MOV R0, #BOUNCE_DELAY
+	BL SysTick_Wait1ms
+Espera_Col0_Linha1
+	CMP R1, #LIN_1
+	BNE Espera_Col0_Linha1
+	MOV R0, #4
+	B RetResultado
+
+Col0_Linha2
+	CMP R1, #LIN_2
+	BNE Col0_Linha3
+	; Espera por bounce
+	MOV R0, #BOUNCE_DELAY
+	BL SysTick_Wait1ms
+Espera_Col0_Linha2
+	CMP R1, #LIN_2
+	BNE Espera_Col0_Linha2
+	MOV R0, #7
+	B RetResultado
+
+Col0_Linha3
+	CMP R1, #LIN_3
+	BNE Col1
+	; Espera por bounce
+	MOV R0, #BOUNCE_DELAY
+	BL SysTick_Wait1ms
+Espera_Col0_Linha3
+	CMP R1, #LIN_3
+	BNE Espera_Col0_Linha3
+	MOV R0, #10
+	B RetResultado
+
+Col1
+	; Escreve 0 na segunda coluna
+	LDR R2, =TECLADO_COLS
+	LDR R0, [R2]
+	BIC R0, #COLS
+	ORR R0, #COL_0
+	ORR R0, #COL_2
+	STR R0, [R2]
+	; Delay de 10ms
+	MOV R0, #10
+	BL SysTick_Wait1ms
+	; Lê valor das linhas
+	LDR R2, =TECLADO_LINS
+	LDR R1, [R2]
+
+Col1_Linha0
+	CMP R1, #LIN_0
+	BNE Col1_Linha1
+	; Espera por bounce
+	MOV R0, #BOUNCE_DELAY
+	BL SysTick_Wait1ms
+Espera_Col1_Linha0
+	CMP R1, #LIN_0
+	BNE Espera_Col1_Linha0
+	MOV R0, #2
+	B RetResultado
+
+Col1_Linha1
+	CMP R1, #LIN_1
+	BNE Col1_Linha2
+	; Espera por bounce
+	MOV R0, #BOUNCE_DELAY
+	BL SysTick_Wait1ms
+Espera_Col1_Linha1
+	CMP R1, #LIN_1
+	BNE Espera_Col1_Linha1
+	MOV R0, #5
+	B RetResultado
+
+Col1_Linha2
+	CMP R1, #LIN_2
+	BNE Col1_Linha3
+	; Espera por bounce
+	MOV R0, #BOUNCE_DELAY
+	BL SysTick_Wait1ms
+Espera_Col1_Linha2
+	CMP R1, #LIN_2
+	BNE Espera_Col1_Linha2
+	MOV R0, #8
+	B RetResultado
+
+Col1_Linha3
+	CMP R1, #LIN_3
+	BNE Col2
+	; Espera por bounce
+	MOV R0, #BOUNCE_DELAY
+	BL SysTick_Wait1ms
+Espera_Col1_Linha3
+	CMP R1, #LIN_3
+	BNE Espera_Col1_Linha3
+	MOV R0, #0
+	B RetResultado
+
+Col2
+	; Escreve 0 na terceira coluna
+	LDR R2, =TECLADO_COLS
+	LDR R0, [R2]
+	BIC R0, #COLS
+	ORR R0, #COL_0
+	ORR R0, #COL_1
+	STR R0, [R2]
+	; Delay de 10ms
+	MOV R0, #10
+	BL SysTick_Wait1ms
+	; Lê valor das linhas
+	LDR R2, =TECLADO_LINS
+	LDR R1, [R2]
+
+Col2_Linha0
+	CMP R1, #LIN_0
+	BNE Col2_Linha1
+	; Espera por bounce
+	MOV R0, #BOUNCE_DELAY
+	BL SysTick_Wait1ms
+Espera_Col2_Linha0
+	CMP R1, #LIN_0
+	BNE Espera_Col2_Linha0
+	MOV R0, #3
+	B RetResultado
+
+Col2_Linha1
+	CMP R1, #LIN_1
+	BNE Col2_Linha2
+	; Espera por bounce
+	MOV R0, #BOUNCE_DELAY
+	BL SysTick_Wait1ms
+Espera_Col2_Linha1
+	CMP R1, #LIN_1
+	BNE Espera_Col2_Linha1
+	MOV R0, #6
+	B RetResultado
+
+Col2_Linha2
+	CMP R1, #LIN_2
+	BNE Col2_Linha3
+	; Espera por bounce
+	MOV R0, #BOUNCE_DELAY
+	BL SysTick_Wait1ms
+Espera_Col2_Linha2
+	CMP R1, #LIN_2
+	BNE Espera_Col2_Linha2
+	MOV R0, #9
+	B RetResultado
+
+Col2_Linha3
+	CMP R1, #LIN_3
+	BNE Col0
+	; Espera por bounce
+	MOV R0, #BOUNCE_DELAY
+	BL SysTick_Wait1ms
+Espera_Col2_Linha3
+	CMP R1, #LIN_3
+	BNE Espera_Col2_Linha3
+	MOV R0, #11
+	B RetResultado
+
+	MOV R0, #10
+RetResultado
+	POP {R1,R2,LR}
+	BX LR
 
 	ALIGN
 	END

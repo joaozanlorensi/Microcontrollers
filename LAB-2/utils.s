@@ -262,6 +262,7 @@ SysTick_Init
 ; Saída: Nenhum
 ; Modifica: R0, R1 e R3
 SysTick_Wait
+    PUSH {R1,R3}
 	LDR R1, =NVIC_ST_RELOAD_R 			; R1 = &NVIC_ST_RELOAD_RSUB R0 (ponteiro)
 	SUB R0, #1                          
 	STR R0, [R1] 						; delay-1, número de contagens para esperar
@@ -270,6 +271,7 @@ SysTick_Wait_loop
 	LDR R3, [R1] 						; R3 = &NVIC_ST_CTRL_R (ponteiro)
 	ANDS R3, R3, #0x00010000 			; O bit COUNT está setado? (Bit 16)
 	BEQ SysTick_Wait_loop               ; Se sim permanece no loop
+    POP {R1,R3}
 	BX LR                               ; Se não, retorna
 
 ;------------SysTick_Wait1ms------------
