@@ -19,7 +19,19 @@ SYSCTL_RCGCGPIO_R	 EQU	0x400FE608
 SYSCTL_PRGPIO_R		 EQU    0x400FEA08
 ; ========================
 ; Definições dos Ports
-	
+
+; PORT A
+GPIO_PORTA_AHB_DATA_R		EQU    0x400583FC
+GPIO_PORTA_AHB_DIR_R		EQU    0x40058400
+GPIO_PORTA_AHB_AFSEL_R		EQU    0x40058420
+GPIO_PORTA_AHB_PUR_R		EQU    0x40058510
+GPIO_PORTA_AHB_DEN_R		EQU    0x4005851C
+GPIO_PORTA_AHB_LOCK_R		EQU    0x40058520
+GPIO_PORTA_AHB_CR_R			EQU    0x40058524
+GPIO_PORTA_AHB_AMSEL_R		EQU    0x40058528
+GPIO_PORTA_AHB_PCTL_R		EQU    0x4005852C
+GPIO_PORTA					EQU    2_000000000000001
+
 ; PORT J
 GPIO_PORTJ_AHB_LOCK_R    	EQU    0x40060520
 GPIO_PORTJ_AHB_CR_R      	EQU    0x40060524
@@ -68,7 +80,43 @@ GPIO_PORTL_AMSEL_R      EQU		0x40062528
 GPIO_PORTL_PCTL_R       EQU		0x4006252C
 GPIO_PORTL_IS_R         EQU		0x40062404
 GPIO_PORTL				EQU 2_000010000000000
-	
+
+;PORT P
+GPIO_PORTP_DATA_R       	EQU    0x400653FC
+GPIO_PORTP_DIR_R        	EQU    0x40065400
+GPIO_PORTP_AFSEL_R      	EQU    0x40065420
+GPIO_PORTP_PUR_R        	EQU    0x40065510
+GPIO_PORTP_DEN_R        	EQU    0x4006551C
+GPIO_PORTP_LOCK_R       	EQU    0x40065520
+GPIO_PORTP_CR_R         	EQU    0x40065524
+GPIO_PORTP_AMSEL_R      	EQU    0x40065528
+GPIO_PORTP_PCTL_R       	EQU    0x4006552C
+GPIO_PORTP					EQU    2_010000000000000
+
+;PORT Q
+GPIO_PORTQ_DATA_R       	EQU    0x400663FC
+GPIO_PORTQ_DIR_R        	EQU    0x40066400
+GPIO_PORTQ_AFSEL_R      	EQU    0x40066420
+GPIO_PORTQ_PUR_R        	EQU    0x40066510
+GPIO_PORTQ_DEN_R        	EQU    0x4006651C
+GPIO_PORTQ_LOCK_R       	EQU    0x40066520
+GPIO_PORTQ_CR_R         	EQU    0x40066524
+GPIO_PORTQ_AMSEL_R      	EQU    0x40066528
+GPIO_PORTQ_PCTL_R       	EQU    0x4006652C
+GPIO_PORTQ					EQU    2_100000000000000
+
+; INTERRUPT PARAMETERS
+NVIC						EQU	   0xE000E000
+NVIC_OFFSET_EN				EQU	   0x104	
+NVIC_OFFSET_PRI				EQU	   0x430	
+GPIO_PORTJ_INTERRUPT_NUMBER EQU    0x00080000  
+GPIO_PORTJ_PRI_LEVEL		EQU	   0xE0000000
+GPIO_PORTJ_AHB_IS_R     	EQU		0x40060404
+GPIO_PORTJ_AHB_IBE_R   		EQU		0x40060408
+GPIO_PORTJ_AHB_IEV_R  		EQU		0x4006040C
+GPIO_PORTJ_AHB_IM_R     	EQU		0x40060410
+GPIO_PORTJ_AHB_ICR_R    	EQU		0x4006041C
+
 ; Valores para o LCD
 LCD_BUS        EQU GPIO_PORTK_DATA_R
 LCD_CONTROL    EQU GPIO_PORTM_DATA_R
@@ -108,6 +156,9 @@ BOUNCE_DELAY		EQU 300
 	EXPORT LCD_ImprimeString
 	EXPORT LCD_SetaCursor
 	EXPORT LeTeclado
+	EXPORT LED_Off
+	EXPORT LED_On
+	EXPORT LED_Output
 
 	IMPORT SysTick_Wait1ms
         								
@@ -125,6 +176,9 @@ GPIO_Init
 	ORR 	R1, #GPIO_PORTM
 	ORR 	R1, #GPIO_PORTK
 	ORR 	R1, #GPIO_PORTL
+	ORR		R1, #GPIO_PORTP
+	ORR		R1, #GPIO_PORTA
+	ORR		R1, #GPIO_PORTQ
 	STR     R1, [R0]						;Move para a memória os bits das portas no endereço do RCGCGPIO
 	LDR     R0, =SYSCTL_PRGPIO_R			;Carrega o endereço do PRGPIO para esperar os GPIO ficarem prontos
 EsperaGPIO  
@@ -133,6 +187,9 @@ EsperaGPIO
 	ORR     R2, #GPIO_PORTM
 	ORR     R2, #GPIO_PORTK
 	ORR     R2, #GPIO_PORTL
+	ORR		R1, #GPIO_PORTP
+	ORR		R1, #GPIO_PORTA
+	ORR		R1, #GPIO_PORTQ
 	TST     R1, R2							;ANDS de R1 com R2
 	BEQ     EsperaGPIO					    ;Se o flag Z=1, volta para o laço. Senão continua executando
  
@@ -146,6 +203,12 @@ EsperaGPIO
 	STR     R1, [R0]
 	LDR     R0, =GPIO_PORTL_AMSEL_R
 	STR     R1, [R0]
+	LDR     R0, =GPIO_PORTA_AHB_AMSEL_R
+	STR     R1, [R0]
+	LDR     R0, =GPIO_PORTP_AMSEL_R
+	STR     R1, [R0]
+	LDR     R0, =GPIO_PORTQ_AMSEL_R
+	STR     R1, [R0]
  
 ; 3. Limpar PCTL para selecionar o GPIO
 	MOV     R1, #0x00
@@ -157,9 +220,20 @@ EsperaGPIO
 	STR     R1, [R0]
 	LDR     R0, =GPIO_PORTL_PCTL_R
 	STR     R1, [R0]
+	LDR     R0, =GPIO_PORTP_PCTL_R
+	STR     R1, [R0]
+	LDR     R0, =GPIO_PORTQ_PCTL_R
+	STR     R1, [R0]
+	LDR     R0, =GPIO_PORTA_AHB_PCTL_R
+	STR     R1, [R0]
+
 ; 4. DIR para 0 se for entrada, 1 se for saída
 	LDR     R0, =GPIO_PORTJ_AHB_DIR_R
 	MOV     R1, #0x00
+	STR     R1, [R0]
+
+	LDR     R0, =GPIO_PORTA_AHB_DIR_R
+	MOV     R1, #0xF0
 	STR     R1, [R0]
 	
 	LDR     R0, =GPIO_PORTM_DIR_R
@@ -173,6 +247,14 @@ EsperaGPIO
 	LDR     R0, =GPIO_PORTL_DIR_R
 	MOV     R1, #0x00
 	STR     R1, [R0]
+
+	LDR     R0, =GPIO_PORTP_DIR_R
+	MOV     R1, #0x20
+	STR     R1, [R0]
+
+	LDR     R0, =GPIO_PORTQ_DIR_R
+	MOV     R1, #0x0F
+	STR     R1, [R0]
 			
 ; 5. Limpar os bits AFSEL para 0 para selecionar GPIO 
 ;    Sem função alternativa
@@ -182,6 +264,12 @@ EsperaGPIO
 	LDR     R0, =GPIO_PORTM_AFSEL_R
 	STR     R1, [R0]
 	LDR     R0, =GPIO_PORTK_AFSEL_R
+	STR     R1, [R0]
+	LDR     R0, =GPIO_PORTA_AHB_AFSEL_R
+	STR     R1, [R0]
+	LDR     R0, =GPIO_PORTP_AFSEL_R
+	STR     R1, [R0]
+	LDR     R0, =GPIO_PORTQ_AFSEL_R
 	STR     R1, [R0]
 			
 ; 6. Setar os bits de DEN para habilitar I/O digital
@@ -208,6 +296,24 @@ EsperaGPIO
 	MOV     R2, #2_00001111
 	ORR     R1, R2
 	STR     R1, [R0]
+
+	LDR     R0, =GPIO_PORTQ_DEN_R
+	LDR     R1, [R0]
+	MOV     R2, #2_00001111
+	ORR     R1, R2
+	STR     R1, [R0]
+
+	LDR     R0, =GPIO_PORTP_DEN_R
+	LDR     R1, [R0]
+	MOV     R2, #2_00100000
+	ORR     R1, R2
+	STR     R1, [R0]
+
+	LDR     R0, =GPIO_PORTA_AHB_DEN_R
+	LDR     R1, [R0]
+	MOV     R2, #2_11110000
+	ORR     R1, R2
+	STR     R1, [R0]
 			
 ; 7. Para habilitar resistor de pull-up interno, setar PUR para 1
 	LDR     R0, =GPIO_PORTJ_AHB_PUR_R		;Carrega o endere?o do PUR para a porta J
@@ -221,6 +327,29 @@ EsperaGPIO
 	ORR     R1, #BIT2						
 	ORR     R1, #BIT3						
 	STR     R1, [R0]						
+	
+; 8. Definir a rotina para interrupção geral
+	MOV R0, #0x0000
+	LDR R1, =GPIO_PORTJ_AHB_IM_R
+	STR R0, [R1]
+	LDR R1, =GPIO_PORTJ_AHB_IS_R
+	STR R0, [R1]
+	LDR R1, =GPIO_PORTJ_AHB_IBE_R
+	STR R0, [R1]
+	
+	MOV R0, #0x0001
+	LDR R1, =GPIO_PORTJ_AHB_IEV_R
+	STR R0, [R1]
+	LDR R1, =GPIO_PORTJ_AHB_ICR_R
+	STR R0, [R1]
+	LDR R1, =GPIO_PORTJ_AHB_IM_R
+	STR R0, [R1]
+	
+	LDR R0, =NVIC
+	MOV R1, #GPIO_PORTJ_INTERRUPT_NUMBER ; Ativa o bit 19, referente ao GPIOJ
+	STR R1, [R0, #NVIC_OFFSET_EN]
+	MOV R1, #GPIO_PORTJ_PRI_LEVEL
+	STR R1, [R0, #NVIC_OFFSET_PRI]
 	
 	BX LR;
 
@@ -250,6 +379,7 @@ LCD_Init
 ; Saída: Nenhuma
 LCD_ImprimeString
 	PUSH {R1}
+VoltaLCD
 	; Carrega caracter
 	LDRB R1, [R0], #1
 	; Verifica por fim da string
@@ -260,7 +390,7 @@ LCD_ImprimeString
 	MOV R0, R1
 	BL DadoLCD
 	POP {R0,LR}
-	B LCD_ImprimeString
+	B VoltaLCD
 Fim
 	POP{R1}
 	;Retorna
@@ -543,6 +673,51 @@ Espera_Col2_Linha3
 
 	MOV R0, #10
 RetResultado
+	POP {R1,R2,LR}
+	BX LR
+
+; LED_Output - Coloca valor de R0 no barremento de LEDs
+; Entradas: R0
+; Saídas: Nenhuma
+LED_Output
+	PUSH {R1,R2,R3,LR}
+	
+	LDR R1, =GPIO_PORTA_AHB_DATA_R
+	LDR R2, [R1]  ; R2 <= Dados do PORT A
+	BIC R2, #2_11110000
+	ORR R3, R0, R2
+	STR R3, [R1]  
+	
+	LDR R1, =GPIO_PORTQ_DATA_R
+	LDR R2, [R1]  ; R2 <= Dados do PORT Q
+	BIC R2, #2_00001111
+	ORR R3, R0, R2
+	STR R3, [R1]
+	
+	POP {R1,R2,R3,LR}
+	BX LR
+
+; LED_On - Liga LEDs
+; Entradas: Nenhuma
+; Saídas: Nenhuma
+LED_On
+	PUSH {R1,R2,LR} 
+	LDR R1, =GPIO_PORTP_DATA_R
+	LDR R2, [R1]  ; R2 <= Dados do PORT A
+	ORR R2, R2, #2_00100000
+	STR R2, [R1]
+	POP {R1,R2,LR}
+	BX LR
+
+; LED_Off - Desliga LEDs
+; Entradas: Nenhuma
+; Saídas: Nenhuma
+LED_Off
+	PUSH {R1,R2,LR} 
+	LDR R1, =GPIO_PORTP_DATA_R
+	LDR R2, [R1]  ; R2 <= Dados do PORT A
+	BIC R2, R2, #2_00100000
+	STR R2, [R1]
 	POP {R1,R2,LR}
 	BX LR
 

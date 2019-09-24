@@ -35,6 +35,7 @@ Stack   EQU     0x00000400
 ;
 ;******************************************************************************
 Heap    EQU     0x00000000
+GPIO_PORTJ_AHB_ICR_R    	EQU		0x4006041C
 
 ;******************************************************************************
 ;
@@ -241,6 +242,7 @@ Reset_Handler
         ; .bss section.
         ;
         IMPORT  Start
+		IMPORT ZeraRAM
         B       Start     ;call user assembly language program
 
 ;******************************************************************************
@@ -453,6 +455,13 @@ ADC1Seq2_Handler
 ADC1Seq3_Handler
 ExtBus_Handler
 GPIOPortJ_Handler
+	PUSH{LR}
+	LDR R1, =GPIO_PORTJ_AHB_ICR_R
+	MOV R0, #0x01
+	STR R0, [R1] 
+	BL ZeraRAM	
+	POP{LR}	
+	BX LR
 GPIOPortK_Handler
 GPIOPortL_Handler
 SSI2_Handler
