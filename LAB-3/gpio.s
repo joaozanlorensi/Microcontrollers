@@ -365,7 +365,7 @@ Col0_Linha3
 Espera_Col0_Linha3
 	CMP R1, #LIN_3
 	BNE Espera_Col0_Linha3
-	MOV R0, #10
+	MOV R0, #99
 	B RetResultado
 
 Col1
@@ -491,7 +491,7 @@ Col2_Linha3
 Espera_Col2_Linha3
 	CMP R1, #LIN_3
 	BNE Espera_Col2_Linha3
-	MOV R0, #11
+	MOV R0, #98
 	B RetResultado
 
 	MOV R0, #10

@@ -217,6 +217,8 @@ __Vectors
 ;
 ;******************************************************************************
         EXPORT  Reset_Handler
+	IMPORT InterruptHandler
+	IMPORT ClearInterrupt
 Reset_Handler
         ;
         ; Do not enable the floating-point unit.  Un-comment this to handle the
@@ -453,6 +455,11 @@ ADC1Seq2_Handler
 ADC1Seq3_Handler
 ExtBus_Handler
 GPIOPortJ_Handler
+		PUSH{LR}
+        BL ClearInterrupt
+        BL InterruptHandler
+        POP{LR}
+		BX LR
 GPIOPortK_Handler
 GPIOPortL_Handler
 SSI2_Handler

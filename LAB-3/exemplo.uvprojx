@@ -412,6 +412,16 @@
               <FileType>2</FileType>
               <FilePath>.\gpio.s</FilePath>
             </File>
+            <File>
+              <FileName>utils.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\utils.c</FilePath>
+            </File>
+            <File>
+              <FileName>state.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\state.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
