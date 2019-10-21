@@ -145,3 +145,13 @@ void PortN_Output(uint32_t valor) {
   temp = temp | valor;
   GPIO_PORTN_DATA_R = temp;
 }
+
+void PortH_Output(uint32_t valor) {
+  uint32_t temp;
+  // vamos zerar somente os bits menos significativos
+  // para uma escrita amig?vel nos bits 0 e 1
+  temp = GPIO_PORTH_AHB_DATA_R & 0xF0;
+  // agora vamos fazer o OR com o valor recebido na fun??o
+  temp = temp | valor;
+  GPIO_PORTH_AHB_DATA_R = temp;
+}
