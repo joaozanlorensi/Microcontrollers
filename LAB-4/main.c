@@ -37,6 +37,7 @@ Sentido leSentido(void);
 Velocidade leVelocidade(void);
 uint16_t tipoInput;
 
+
 Estado estado = {.nome = INICIAL,
                  .voltaAtual = 0,
                  .passoAtual = 0x00,
