@@ -219,6 +219,8 @@ __Vectors
         EXPORT  Reset_Handler
 		IMPORT InterruptHandler
 		IMPORT ClearInterrupt
+		IMPORT ClearTimerInterrupt
+		IMPORT HandlePWM
 Reset_Handler
         ;
         ; Do not enable the floating-point unit.  Un-comment this to handle the
@@ -427,6 +429,11 @@ Timer0B_Handler
 Timer1A_Handler
 Timer1B_Handler
 Timer2A_Handler
+	PUSH {LR}
+	BL ClearTimerInterrupt
+	BL HandlePWM
+	POP {LR}
+	BX LR
 Timer2B_Handler
 Comp0_Handler
 Comp1_Handler

@@ -1,9 +1,12 @@
 // gpio.c
 
 #include "tm4c1294ncpdt.h"
+#include "state.h"
 #include <stdint.h>
 
 #define GPIO_PORTA 0x0001
+#define GPIO_PORTE 0x0010
+#define GPIO_PORTF 0x0020
 #define GPIO_PORTH 0x0080
 #define GPIO_PORTJ 0x0100
 #define GPIO_PORTK 0x0200
@@ -20,9 +23,13 @@
 #define GPIO_PORTJ_INTERRUPT_NUMBER 0x00080000
 #define GPIO_PORTJ_PRI_LEVEL 0xE0000000
 
+uint32_t converteTempoParaTimer(uint32_t tempoEmUs);
+
 // -------------------------------------------------------------------------------
 void GPIO_Init() {
   uint32_t GPIO_PORTS = GPIO_PORTA;
+  GPIO_PORTS |= GPIO_PORTE;
+  GPIO_PORTS |= GPIO_PORTF;
   GPIO_PORTS |= GPIO_PORTH;
   GPIO_PORTS |= GPIO_PORTJ;
   GPIO_PORTS |= GPIO_PORTK;
@@ -41,6 +48,8 @@ void GPIO_Init() {
 
   // 2. Limpar o AMSEL para desabilitar a anal�gica
   GPIO_PORTA_AHB_AMSEL_R = 0x00;
+  GPIO_PORTE_AHB_AMSEL_R = 0x00; 
+  GPIO_PORTF_AHB_AMSEL_R = 0x00; 
   GPIO_PORTH_AHB_AMSEL_R = 0x00;
   GPIO_PORTJ_AHB_AMSEL_R = 0x00;
   GPIO_PORTK_AMSEL_R = 0x00;
@@ -53,6 +62,8 @@ void GPIO_Init() {
   // 3. Limpar PCTL para selecionar o GPIO
   GPIO_PORTA_AHB_PCTL_R = 0x11;
   GPIO_PORTH_AHB_PCTL_R = 0x00;
+  GPIO_PORTE_AHB_PCTL_R = 0x00;
+  GPIO_PORTF_AHB_PCTL_R = 0x00;
   GPIO_PORTJ_AHB_PCTL_R = 0x00;
   GPIO_PORTK_PCTL_R = 0x00;
   GPIO_PORTL_PCTL_R = 0x00;
@@ -63,6 +74,8 @@ void GPIO_Init() {
 
   // 4. DIR para 0 se for entrada, 1 se for saída
   GPIO_PORTA_AHB_DIR_R = 0xF0;
+  GPIO_PORTE_AHB_DIR_R = 0x0F; // PE0-PE3 sao saidas, PE4 <- entrada do pot
+  GPIO_PORTF_AHB_DIR_R = 0x0C; // PF2 e PF3 sao saidas (1100b = Ch)
   GPIO_PORTH_AHB_DIR_R = 0x0F;
   GPIO_PORTJ_AHB_DIR_R = 0x00;
   GPIO_PORTK_DIR_R = 0xFF;
@@ -74,6 +87,8 @@ void GPIO_Init() {
 
   // 5. Limpar os bits AFSEL para 0 para selecionar GPIO sem função alternativa
   GPIO_PORTA_AHB_AFSEL_R = 0x03;
+  GPIO_PORTE_AHB_AFSEL_R = 0x00; 
+  GPIO_PORTF_AHB_AFSEL_R = 0x00; 
   GPIO_PORTH_AHB_AFSEL_R = 0x00;
   GPIO_PORTJ_AHB_AFSEL_R = 0x00;
   GPIO_PORTK_AFSEL_R = 0x00;
@@ -86,6 +101,8 @@ void GPIO_Init() {
   // 6. Setar os bits de DEN para habilitar I/O digital
   GPIO_PORTA_AHB_DEN_R = 0xF3;
   GPIO_PORTH_AHB_DEN_R = 0x0F;
+  GPIO_PORTE_AHB_DEN_R = 0x0F; // Tal como no passo 4
+  GPIO_PORTF_AHB_DEN_R = 0xFF; // Tal como no passo 
   GPIO_PORTJ_AHB_DEN_R = 0x03; // Bit0 e bit1
   GPIO_PORTK_DEN_R = 0xFF;
   GPIO_PORTL_DEN_R = 0x0F;
@@ -133,6 +150,7 @@ void LedOutput(uint32_t leds) {
 }
 
 void ClearInterrupt() { GPIO_PORTJ_AHB_ICR_R = 0x0001; }
+void ClearTimerInterrupt(){ TIMER2_ICR_R = 0x0001; }
 
 uint32_t PortJ_Input(void) { return GPIO_PORTJ_AHB_DATA_R; }
 
@@ -154,4 +172,46 @@ void PortH_Output(uint32_t valor) {
   // agora vamos fazer o OR com o valor recebido na fun??o
   temp = temp | valor;
   GPIO_PORTH_AHB_DATA_R = temp;
+}
+
+void Timer2_init(){
+  SYSCTL_RCGCTIMER_R = SYSCTL_RCGCTIMER_R | 0x00000004; // or para setar bit 2
+  while(SYSCTL_PRTIMER_R != 0x00000004){}; // testa ate que o bit 2 seja 1
+  TIMER2_CTL_R = TIMER2_CTL_R & ~0x00000001; // BIC para zerar bit 0
+  TIMER2_CFG_R = TIMER2_CFG_R & ~0x00000007; // BIC para zerar bits 0, 1 e 2
+  TIMER2_TAMR_R = TIMER2_TAMR_R & ~0x00000003; // or para setar bit 0
+  TIMER2_TAMR_R = TIMER2_TAMR_R | 0x000000001; // bic para zerar bit 1
+  TIMER2_TAPR_R = 0x00000000; // registrador <- tudo zero
+  TIMER2_ICR_R = TIMER2_ICR_R | 0x00000001; // or para setar bit 0 em 1
+  TIMER2_IMR_R = TIMER2_IMR_R | 0x00000001; // or para setar bit 0 em 1
+  NVIC_PRI5_R = NVIC_PRI5_R | 0x80000000; //* or para setar bit 29 em 1
+  NVIC_EN0_R = NVIC_EN0_R | 0x00800000; // or para setar bit 23 em 1
+}
+
+void habilitaTimer(){
+  TIMER2_CTL_R = TIMER2_CTL_R | 0x00000001; // or para setar bit 0 em 1
+}
+void deshabilitaTimer(){
+  TIMER2_CTL_R = TIMER2_CTL_R & ~0x00000001; // or para setar bit 0 em 1
+}
+
+void ligaEnable() {
+  GPIO_PORTF_AHB_DATA_R = GPIO_PORTF_AHB_DATA_R | 0x04; 
+}
+
+void desligaEnable() {
+  GPIO_PORTF_AHB_DATA_R = GPIO_PORTF_AHB_DATA_R & ~0x04;
+}
+
+void setaSentido(Sentido sentido){
+  switch(sentido){
+    case HORARIO:
+      GPIO_PORTE_AHB_DATA_R = GPIO_PORTE_AHB_DATA_R & ~0x3; 
+      GPIO_PORTE_AHB_DATA_R = 0x2;
+      break;
+    case ANTIHORARIO:
+      GPIO_PORTE_AHB_DATA_R = GPIO_PORTE_AHB_DATA_R & ~0x3;
+      GPIO_PORTE_AHB_DATA_R = 0x1;
+      break;
+  }
 }

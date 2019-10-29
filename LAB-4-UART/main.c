@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
+#include "tm4c1294ncpdt.h"
 
 
 /* Funções */
@@ -33,6 +34,14 @@ void UART_OutChar(unsigned char data);
 Sentido GetSentido(void);
 Velocidade GetVelocidade(void);
 void ImprimeStatus(void);
+void PWM(void);
+void ligaEnable(void);
+void desligaEnable(void);
+void habilitaTimer(void);
+void deshabilitaTimer(void);
+void Timer2_init(void);
+void setaSentido(Sentido sentido);
+uint32_t converteTempoParaTimer(uint32_t tempoEmUs);
 
 // Utils
 char *int2char(uint16_t num);
@@ -46,9 +55,9 @@ int main(void) {
   GPIO_Init();
   LCD_Init();
   UART_Init();
+  Timer2_init();
   LedEnable();
 
-  UART_PrintString("Bem vindo ao controlador de velocidade!\n\r");
   LCD_ImprimeString("   Controlador");
   LCD_SetaCursor(1, 0);
   LCD_ImprimeString("    de Motor");
@@ -61,26 +70,31 @@ int main(void) {
     switch (estado.nome) {
     case INICIAL:
       LCD_Clear();
-      // paraMotor();
+      desligaEnable();
+      deshabilitaTimer();
       UART_PrintString("Bem vindo ao controlador de velocidade!\n\r");
       UART_PrintString("Motor: Parado\n\r");
       estado.sentido = GetSentido();
       estado.velocidade = GetVelocidade();
       estado.nome = GIRANDO;
+      TIMER2_TAILR_R = converteTempoParaTimer(1000 - estado.velocidade * 100);
+      habilitaTimer();
       break;
     case GIRANDO:
       LCD_Clear();
       LCD_ImprimeString("Girando...");
       ImprimeStatus();
       // Chamada para motor girar;
-      // giraMotor();
-      delay(2000);
+      // giraMotor(estado.velocidade);
+      setaSentido(estado.sentido);
       
       incomingChar = UART_InCharNonBlocking();
       if(incomingChar == 'h')
         estado.sentido = HORARIO;
       else if(incomingChar == 'a')
         estado.sentido = ANTIHORARIO;
+      else if(incomingChar == '0')
+        estado.velocidade = Parado;
       else if(incomingChar == '1')
         estado.velocidade = Vel1;
       else if(incomingChar == '2')
@@ -252,3 +266,20 @@ void InterruptHandler() {
   estado.nome = INICIAL;
 }
 void delay(uint32_t mili) { SysTick_Wait1ms(mili); }
+
+void HandlePWM(){
+    if(GPIO_PORTF_AHB_DATA_R == 0x0004){
+      deshabilitaTimer();
+      TIMER2_TAILR_R = converteTempoParaTimer(1000 - estado.velocidade * 100);
+      desligaEnable();
+    } else {
+      deshabilitaTimer();
+      TIMER2_TAILR_R = converteTempoParaTimer(estado.velocidade * 100);
+      ligaEnable();
+    }
+    habilitaTimer();
+}
+
+uint32_t converteTempoParaTimer(uint32_t tempoEmUs){
+  return 80 * tempoEmUs  - 1;
+}
