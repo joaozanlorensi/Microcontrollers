@@ -3,9 +3,9 @@
 #include "tm4c1294ncpdt.h"
 #include <stdint.h>
 
-#define GPIO_PORTA 0x0001
-#define GPIO_PORTE 0x0005 //*
-#define GPIO_PORTF 0x0006 //*
+#define GPIO_PORTA 0x0001 
+#define GPIO_PORTE 0x0010
+#define GPIO_PORTF 0x0020
 #define GPIO_PORTH 0x0080
 #define GPIO_PORTJ 0x0100
 #define GPIO_PORTK 0x0200
@@ -21,6 +21,8 @@
 
 #define GPIO_PORTJ_INTERRUPT_NUMBER 0x00080000
 #define GPIO_PORTJ_PRI_LEVEL 0xE0000000
+
+uint16_t tEspera;
 
 // -------------------------------------------------------------------------------
 void GPIO_Init() {
@@ -133,20 +135,25 @@ void LedEnable() {
   GPIO_PORTP_DATA_R = portReading | 0x20;
 }
 
-void Timer2_Count(time){
+void Timer2_init(){
   SYSCTL_RCGCTIMER_R = SYSCTL_RCGCTIMER_R || 0x00000004; // or para setar bit 2
   while(SYSCTL_PRTIMER_R != 0x00000004){}; // testa ate que o bit 2 seja 1
   TIMER2_CTL_R = TIMER2_CTL_R && 0x11111110; // BIC para zerar bit 0
   TIMER2_CFG_R = TIMER2_CFG_R && 0x11111118; // BIC para zerar bits 0, 1 e 2
   TIMER2_TAMR_R = TIMER2_TAMR_R || 0x00000001; // or para setar bit 0
   TIMER2_TAMR_R = TIMER2_TAMR_R && 0x11111112; // bic para zerar bit 1
-  TIMER2_TAILR_R = time; // TODO: funcao que calcula time reg <- tempo
   TIMER2_TAPR_R = 0x00000000; // registrador <- tudo zero
   TIMER2_ICR_R = TIMER2_ICR_R || 0x00000001; // or para setar bit 0 em 1
   TIMER2_IMR_R = TIMER2_IMR_R || 0x00000001; // or para setar bit 0 em 1
   NVIC_PRI5_R = NVIC_PRI5_R || 0x20000000; //* or para setar bit 29 em 1
   NVIC_EN0_R = NVIC_EN0_R || 0x008000000; // or para setar bit 23 em 1
+  
+}
+void habilitaTimer(){
   TIMER2_CTL_R = TIMER2_CTL_R || 0x00000001; // or para setar bit 0 em 1
+}
+void deshabilitaTimer(){
+  TIMER2_CTL_R = TIMER2_CTL_R && ~0x00000001; // or para setar bit 0 em 1
 }
 // Coloca o valor nos LEDs da PAT
 void LedOutput(uint32_t leds) {
@@ -191,12 +198,24 @@ void PortH_Output(uint32_t valor) {
   GPIO_PORTH_AHB_DATA_R = temp;
 }
 
-void PortF_Output(uint32_t valor) {
-  uint32_t temp;
-  // vamos zerar somente os bits menos significativos
-  // para uma escrita amig?vel nos bits 0 e 1
-  temp = GPIO_PORTF_AHB_DATA_R & 0x02; // Liga a porta 2
-  // agora vamos fazer o OR com o valor recebido na fun??o
-  temp = temp | valor;
-  GPIO_PORTH_AHB_DATA_R = temp;
+void ligaEnable() {
+  GPIO_PORTF_AHB_DATA_R = GPIO_PORTF_AHB_DATA_R || 0x02; 
 }
+
+void desligaEnable() {
+  GPIO_PORTF_AHB_DATA_R = GPIO_PORTF_AHB_DATA_R && ~0x02;
+}
+
+void setaSentido(Sentido sentido){
+  switch(sentido){
+    case HORARIO:
+      GPIO_PORTE_AHB_DATA_R = GPIO_PORTE_AHB_DATA_R && ~0x3; 
+      GPIO_PORTE_AHB_DATA_R = GPIO_PORTE_AHB_DATA_R || 0x2;
+
+    case ANTIHORARIO:
+      GPIO_PORTE_AHB_DATA_R = GPIO_PORTE_AHB_DATA_R && ~0x3;
+      GPIO_PORTE_AHB_DATA_R = GPIO_PORTE_AHB_DATA_R || 0x1;
+  }
+}
+
+

@@ -171,9 +171,19 @@ void mostraStatus(Sentido s, uint16_t velocidade) {
   }
 };
 
-void gira(uint32_t tipo, uint32_t sentido){
-	
+void habilitaPWM(){
+
 }
+
+void giraMotor(uint32_t tipo, uint32_t sentido, uint32_t velocidade){
+	ligaEnable();
+  setaSentido();
+  ligaMotor();
+
+  
+  Timer2_Count(tempo);
+}
+
 
 void fazPWM(uint16_t velocidade){
   PortF_Output();
