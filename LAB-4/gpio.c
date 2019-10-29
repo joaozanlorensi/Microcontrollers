@@ -24,7 +24,9 @@
 
 // -------------------------------------------------------------------------------
 void GPIO_Init() {
-  uint32_t GPIO_PORTS = GPIO_PORTA;
+  uint32_t GPIO_PORTS = GPIO_PORTA; //TODO colocar PORT E e F
+  GPIO_PORTS |= GPIO_PORTE;
+  GPIO_PORTS |= GPIO_PORTF;
   GPIO_PORTS |= GPIO_PORTH;
   GPIO_PORTS |= GPIO_PORTJ;
   GPIO_PORTS |= GPIO_PORTK;
@@ -69,7 +71,7 @@ void GPIO_Init() {
 
   // 4. DIR para 0 se for entrada, 1 se for saída
   GPIO_PORTA_AHB_DIR_R = 0xF0;
-  GPIO_PORTE_AHB_DIR_R = 0x0F; // PE0-PE3 sao saidas
+  GPIO_PORTE_AHB_DIR_R = 0x0F; // PE0-PE3 sao saidas, PE4 <- entrada do pot
   GPIO_PORTF_AHB_DIR_R = 0x0C; // PF2 e PF3 sao saidas (1100b = Ch)
   GPIO_PORTH_AHB_DIR_R = 0x0F;
   GPIO_PORTJ_AHB_DIR_R = 0x00;
@@ -131,6 +133,23 @@ void LedEnable() {
   GPIO_PORTP_DATA_R = portReading | 0x20;
 }
 
+void Timer2_Count(time){
+  SYSCTL_RCGCTIMER_R = 0x0004;
+  while(SYSCTL_PRTIMER_R != 0X004){};
+  TIMER2_CTL_R = 0x0000;
+  TIMER2_CFG_R = 0x00;
+  TIMER2_TAMR_R = 0x01;
+  TIMER2_TAILR_R = time; // TODO: calcular o valor de contagem
+  // GPTMTAPR TEM QUE VALER 0
+  // SETAR O BIT TATOCINT do MICR com 1
+  TIMER_IMR_TATOIM = 1;
+  NVIC_PRI5_INT23_M = 1; // obs: pode ser _S
+  NVIC_PRI5_INT23_M + NVIC_PRI5_INT23_S = 0x414; // nivel da prioridade
+  // HABILITAR interrupt do timer no reg NVIC int en reg (4) offset = 0x100
+  NVIC_EN0_R = 1;// trocar 1 por bit 23 em 1
+  TIMER2_CTL_R  = 0x0001; // TAEN habilitado
+  TIMER2_TAPR_R = 0x00;
+}
 // Coloca o valor nos LEDs da PAT
 void LedOutput(uint32_t leds) {
   uint32_t ledsPortA = leds & 0xF0;
@@ -147,6 +166,12 @@ void LedOutput(uint32_t leds) {
 void ClearInterrupt() { GPIO_PORTJ_AHB_ICR_R = 0x0001; }
 
 uint32_t PortJ_Input(void) { return GPIO_PORTJ_AHB_DATA_R; }
+
+
+uint32_t PortE_Input(void) { // TODO: CONVERSOR
+  return GPIO_PORTE_AHB_DATA_R && 0x10; // PortE_Input receives the potentiometer voltage value
+                                        // Our interest is in bit 4 (PE4) = 0001 0000b = 10h
+} 
 
 void PortN_Output(uint32_t valor) {
   uint32_t temp;

@@ -1,4 +1,3 @@
-#include "state.h"
 #include <math.h>
 #include <stdint.h>
 
@@ -37,13 +36,10 @@ Sentido leSentido(void);
 Velocidade leVelocidade(void);
 uint16_t tipoInput;
 
-
 Estado estado = {.nome = INICIAL,
-                 .voltaAtual = 0,
-                 .passoAtual = 0x00,
-                 .totalVoltas = 0,
+                 .velocidade = 0,
                  .sentido = HORARIO,
-                 .velocidade = PASSO_COMPLETO};
+                 };
 
 int main(void) {
   // Inicialização
@@ -52,8 +48,6 @@ int main(void) {
   GPIO_Init();
   LCD_Init();
   LedEnable();
-
-  estado.nome = INICIAL;
 
   while (1) {
     switch (estado.nome) {
@@ -99,7 +93,6 @@ int main(void) {
       break;
     case FINAL: //*
       LCD_Clear();
-      LedOutput(0x00);
       LCD_ImprimeString("      FIM");
       LeTeclado();
       estado.nome = INICIAL;
@@ -114,6 +107,19 @@ void mensagemInicial() {
   LCD_Clear();
   LCD_SetaCursor(0, 0);
   LCD_ImprimeString("   MOTOR PARADO   ");
+};
+
+uint16_t selecionaInput() {
+  LCD_Clear();
+  LCD_SetaCursor(0, 0);
+  LCD_ImprimeString("Term(0)|Pot(1)|Tecl(2)");
+
+  LCD_SetaCursor(1, 0);
+  LCD_ImprimeString("Input: ");
+  tipoInput = LeTeclado();
+  LCD_ImprimeString(int2char(tipoInput));
+
+  return velocidade;
 };
 
 uint16_t selecionaVelocidadeTeclado() {
@@ -165,7 +171,7 @@ void gira(uint32_t tipo, uint32_t sentido){
 	
 }
 
-void fazPWM(){
+void fazPWM(uint16_t velocidade){
   PortF_Output();
 }
 
