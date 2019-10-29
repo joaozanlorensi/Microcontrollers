@@ -134,21 +134,19 @@ void LedEnable() {
 }
 
 void Timer2_Count(time){
-  SYSCTL_RCGCTIMER_R = 0x0004;
-  while(SYSCTL_PRTIMER_R != 0X004){};
-  TIMER2_CTL_R = 0x0000;
-  TIMER2_CFG_R = 0x00;
-  TIMER2_TAMR_R = 0x01;
-  TIMER2_TAILR_R = time; // TODO: calcular o valor de contagem
-  // GPTMTAPR TEM QUE VALER 0
-  // SETAR O BIT TATOCINT do MICR com 1
-  TIMER_IMR_TATOIM = 1;
-  NVIC_PRI5_INT23_M = 1; // obs: pode ser _S
-  NVIC_PRI5_INT23_M + NVIC_PRI5_INT23_S = 0x414; // nivel da prioridade
-  // HABILITAR interrupt do timer no reg NVIC int en reg (4) offset = 0x100
-  NVIC_EN0_R = 1;// trocar 1 por bit 23 em 1
-  TIMER2_CTL_R  = 0x0001; // TAEN habilitado
-  TIMER2_TAPR_R = 0x00;
+  SYSCTL_RCGCTIMER_R = SYSCTL_RCGCTIMER_R || 0x00000004; // or para setar bit 2
+  while(SYSCTL_PRTIMER_R != 0x00000004){}; // testa ate que o bit 2 seja 1
+  TIMER2_CTL_R = TIMER2_CTL_R && 0x11111110; // BIC para zerar bit 0
+  TIMER2_CFG_R = TIMER2_CFG_R && 0x11111118; // BIC para zerar bits 0, 1 e 2
+  TIMER2_TAMR_R = TIMER2_TAMR_R || 0x00000001; // or para setar bit 0
+  TIMER2_TAMR_R = TIMER2_TAMR_R && 0x11111112; // bic para zerar bit 1
+  TIMER2_TAILR_R = time; // TODO: funcao que calcula time reg <- tempo
+  TIMER2_TAPR_R = 0x00000000; // registrador <- tudo zero
+  TIMER2_ICR_R = TIMER2_ICR_R || 0x00000001; // or para setar bit 0 em 1
+  TIMER2_IMR_R = TIMER2_IMR_R || 0x00000001; // or para setar bit 0 em 1
+  NVIC_PRI5_R = NVIC_PRI5_R || 0x20000000; //* or para setar bit 29 em 1
+  NVIC_EN0_R = NVIC_EN0_R || 0x008000000; // or para setar bit 23 em 1
+  TIMER2_CTL_R = TIMER2_CTL_R || 0x00000001; // or para setar bit 0 em 1
 }
 // Coloca o valor nos LEDs da PAT
 void LedOutput(uint32_t leds) {

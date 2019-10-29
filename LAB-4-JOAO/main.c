@@ -1,3 +1,4 @@
+#include "state.h"
 #include <math.h>
 #include <stdint.h>
 
@@ -23,6 +24,9 @@ uint16_t LeTeclado(void);
 
 void gira(uint32_t velocidade, uint32_t sentido);
 void PortH_Output(uint32_t);
+uint16_t selecionaInput();
+uint16_t leVelocidadeTeclado();
+Sentido leSentidoTeclado();
 
 void InterruptHandler(void);
 
@@ -30,10 +34,10 @@ void InterruptHandler(void);
 char *int2char(uint16_t num);
 
 void mensagemInicial();
-void mostraStatus(sentido s, Velocidade v);
+void mostraStatus(Sentido s, uint16_t v);
 
 Sentido leSentido(void);
-Velocidade leVelocidade(void);
+uint16_t leVelocidade(void);
 uint16_t tipoInput;
 
 Estado estado = {.nome = INICIAL,
@@ -59,15 +63,15 @@ int main(void) {
       delay(200);
 
       if (tipoInput == TECLADO){
-        estado.velocidade = leVelocidadeTeclado();
+        //estado.velocidade = leVelocidadeTeclado();
         delay(200);
-        estado.sentido = leSentidoTeclado();
+        //estado.sentido = leSentidoTeclado();
         delay(200);
       }
       else if(tipoInput == TERMINAL){
-        estado.velocidade = leVelocidadeTerminal();
+        //estado.velocidade = leVelocidadeTerminal();
         delay(200);
-        estado.sentido = leSentidoTerminal();
+        //estado.sentido = leSentidoTerminal();
         delay(200);
       }
     
@@ -78,16 +82,16 @@ int main(void) {
       estado.nome = FINAL;
       
       if(tipoInput == TECLADO){
-        gira(estado.velocidade, estado.sentido);
-        mostraStatusLCD(estado.sentido, estado.velocidade);
+        //gira(estado.velocidade, estado.sentido);
+        //mostraStatusLCD(estado.sentido, estado.velocidade);
       }
       else if(tipoInput == POTENCIOMETRO){
-        giraComPotenciometro(estado.sentido);
-        mostraStatusLCD(estado.sentido, estado.velocidade);
+        //giraComPotenciometro(estado.sentido);
+        //mostraStatusLCD(estado.sentido, estado.velocidade);
       }
       else{
-        gira(estado.velocidade, estado.sentido);
-        mostraStatusTerminal(estado.sentido, estado.velocidade);
+        //gira(estado.velocidade, estado.sentido);
+        //mostraStatusTerminal(estado.sentido, estado.velocidade);
       }
       
       break;
@@ -116,10 +120,10 @@ uint16_t selecionaInput() {
 
   LCD_SetaCursor(1, 0);
   LCD_ImprimeString("Input: ");
-  tipoInput = LeTeclado();
+  uint16_t tipoInput = LeTeclado();
   LCD_ImprimeString(int2char(tipoInput));
 
-  return velocidade;
+  return tipoInput;
 };
 
 uint16_t selecionaVelocidadeTeclado() {
@@ -127,7 +131,7 @@ uint16_t selecionaVelocidadeTeclado() {
   LCD_SetaCursor(0, 0);
 
   LCD_ImprimeString("Velocidade: ");
-  velocidade = LeTeclado();
+  uint16_t velocidade = LeTeclado();
   LCD_ImprimeString(int2char(velocidade));
 
   return velocidade;

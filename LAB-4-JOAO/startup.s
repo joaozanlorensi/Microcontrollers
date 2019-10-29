@@ -298,13 +298,7 @@ PendSV_Handler  PROC
                 EXPORT  PendSV_Handler            [WEAK]
                 B       .
                 ENDP
-SysTick_Handler
-               ;PUSH{LR}
-               ;        BL ClearInterrupt
-               ;         BL InterruptHandler
-               ;POP{LR}
-	       ;BX LR
-                PROC
+SysTick_Handler PROC
                 EXPORT  SysTick_Handler           [WEAK]
                 B       .
                 ENDP
@@ -432,14 +426,13 @@ Timer0A_Handler
 Timer0B_Handler
 Timer1A_Handler
 Timer1B_Handler
-Timer2A_Handler // ANCHOR --- Colocar 
-        LDR R1, =TIMER2_ICR_R
-        MOV R0, #1STR R0, [R1]
-        PUSH {LR}
-        ;BL  ____ ; TODO ROTINA QUE CORTA O PF 2 E 3
-        ;Chama a rotina que recarrega com o valor que o timer deveria permanecer em baixa, desligar a porta e repetir o processo
-        POP  {LR} ; retorno da interrupção
-        BX LR            ; 
+Timer2A_Handler ;LDR R1, =TIMER2_ICR_R
+				;MOV R0, #1STR R0, [R1]
+				PUSH {LR}
+				;BL  ____ ; TODO ROTINA QUE CORTA O PF 2 E 3
+				;Chama a rotina que recarrega com o valor que o timer deveria permanecer em baixa, desligar a porta e repetir o processo
+				POP  {LR} ; retorno da interrupção
+				BX LR            ; 
 Timer2B_Handler
 Comp0_Handler
 Comp1_Handler
