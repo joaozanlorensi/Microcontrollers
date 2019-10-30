@@ -1,0 +1,15 @@
+// motor.c
+
+#include "tm4c1294ncpdt.h"
+#include <stdint.h>
+
+const uint8_t fullStepHor[4] = {0x01, 0x02, 0x04, 0x08};
+const uint8_t fullStepAntHor[4] = {0x08, 0x04, 0x02, 0x01};
+
+const uint8_t halfStepHor[8] = {0x09, 0x01, 0x03, 0x02, 0x06, 0x04, 0x0c, 0x08};
+const uint8_t halfStepAntHor[8] = {0x08, 0x0c, 0x04, 0x06,
+                                   0x02, 0x03, 0x01, 0x09};
+
+// Em milisegundos
+const uint16_t atrasoFase = 2;
+const uint16_t intervalo = 1000;
