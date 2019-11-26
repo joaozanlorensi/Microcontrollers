@@ -13,8 +13,24 @@
 void PLL_Init(void);
 void SysTick_Init(void);
 void SysTick_Wait1ms(uint32_t delay);
+void GPIO_Init(void);
+
+void delay(uint32_t mili);
+
+void adcConvert(void);
+void adcInit(void);
 
 int main(void)
 {
-
+	PLL_Init();
+  SysTick_Init();
+  GPIO_Init();
+	adcInit();
+	
+	while(1){
+		adcConvert();
+		delay(1000);
+	}
 }
+
+void delay(uint32_t mili) { SysTick_Wait1ms(mili); }
