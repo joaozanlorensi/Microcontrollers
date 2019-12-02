@@ -14,15 +14,18 @@
 #include <stdint.h>
 
 // Define ports
-#define GPIO_PORTE 0x0010
+#define GPIO_PORTE 0x0010 // Moisture sensor
+#define GPIO_PORTM 0x0800 // LCD Display
+#define GPIO_PORTK 0x0200 // LCD Display
+// UART
+// Temperature sensor
 
-// Interruption parameters
-#define GPIO_PORTJ_INTERRUPT_NUMBER 0x00080000
-#define GPIO_PORTJ_PRI_LEVEL 0xE0000000
 
 // GPIO Field
 void GPIO_Init() {
   uint32_t GPIO_PORTS = GPIO_PORTE;
+	GPIO_PORTS |= GPIO_PORTK;
+	GPIO_PORTS |= GPIO_PORTM;
 
   // 1a. Ativa o clock para a porta setando o bit correspondente no registrador RCGCGPIO
   SYSCTL_RCGCGPIO_R |= GPIO_PORTS;

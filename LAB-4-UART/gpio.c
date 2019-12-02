@@ -191,7 +191,7 @@ void Timer2_init(){
 void habilitaTimer(){
   TIMER2_CTL_R = TIMER2_CTL_R | 0x00000001; // or para setar bit 0 em 1
 }
-void deshabilitaTimer(){
+void desabilitaTimer(){
   TIMER2_CTL_R = TIMER2_CTL_R & ~0x00000001; // or para setar bit 0 em 1
 }
 
