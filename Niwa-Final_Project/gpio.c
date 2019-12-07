@@ -14,18 +14,22 @@
 #include <stdint.h>
 
 // Define ports
-#define GPIO_PORTE 0x0010 // Moisture sensor
+#define GPIO_PORTA 0x0001 // UART
 #define GPIO_PORTM 0x0800 // LCD Display
 #define GPIO_PORTK 0x0200 // LCD Display
-// UART
-// Temperature sensor
-
+#define GPIO_PORTE 0x0010 // Moisture sensor and Water Pump
+#define GPIO_PORTF 0x0020 // Water Pump
+#define GPIO_PORTP 0x2000 // UART
+#define GPIO_PORTL 0x0400 // Temperature sensor *(Missing Code in GPIO INIT)*
 
 // GPIO Field
 void GPIO_Init() {
-  uint32_t GPIO_PORTS = GPIO_PORTE;
+  uint32_t GPIO_PORTS = GPIO_PORTA;
+	GPIO_PORTS |= GPIO_PORTE;
+	GPIO_PORTS |= GPIO_PORTF;
 	GPIO_PORTS |= GPIO_PORTK;
 	GPIO_PORTS |= GPIO_PORTM;
+	GPIO_PORTS |= GPIO_PORTP;
 
   // 1a. Ativa o clock para a porta setando o bit correspondente no registrador RCGCGPIO
   SYSCTL_RCGCGPIO_R |= GPIO_PORTS;
@@ -35,27 +39,53 @@ void GPIO_Init() {
   };
 
   // 2. Limpa o AMSEL para desabilitar a analógica
-  GPIO_PORTE_AHB_AMSEL_R = 0x10; // PE4 = Entrada analogica
+  GPIO_PORTA_AHB_AMSEL_R = 0x00;
+	GPIO_PORTE_AHB_AMSEL_R = 0x10; // PE4 = Entrada analogica
+	GPIO_PORTF_AHB_AMSEL_R = 0x00;
+	GPIO_PORTK_AMSEL_R = 0x00;
+	GPIO_PORTM_AMSEL_R = 0x00;
+	GPIO_PORTP_AMSEL_R = 0x00;
   
   // 3. Limpa PCTL para selecionar o GPIO
-  GPIO_PORTE_AHB_PCTL_R = 0x00;
-  
+  GPIO_PORTA_AHB_PCTL_R = 0x11;
+	GPIO_PORTE_AHB_PCTL_R = 0x00;
+	GPIO_PORTF_AHB_PCTL_R = 0x00;
+	GPIO_PORTK_PCTL_R = 0x00;
+  GPIO_PORTM_PCTL_R = 0x00;
+	GPIO_PORTP_PCTL_R = 0x00;
+
   // 4. DIR para 0 se for entrada, 1 se for saída
-  GPIO_PORTE_AHB_DIR_R = 0x10; // PE4 <- Entrada do sensor de umidade
-  
+  GPIO_PORTA_AHB_DIR_R = 0xF0;
+	GPIO_PORTE_AHB_DIR_R = 0x1F; // PE4 <- Entrada do sensor de umidade, PE0-PE3 <- Sentido de rotacao da bomba d'água
+  GPIO_PORTF_AHB_DIR_R = 0x0C; // PF2-PF3 <- Enable para motores usado na bomba d'água
+	GPIO_PORTK_DIR_R = 0xFF;
+	GPIO_PORTM_DIR_R = 0xFF;
+	GPIO_PORTP_DIR_R = 0x20;
+	
   // 5. Limpa os bits AFSEL para 0 para selecionar GPIO sem função alternativa
-  GPIO_PORTE_AHB_AFSEL_R = 0x10; // Habilita funcao alternativa no PE4
-  
+  GPIO_PORTA_AHB_AFSEL_R = 0x03;
+	GPIO_PORTE_AHB_AFSEL_R = 0x10; // Habilita funcao alternativa no PE4
+  GPIO_PORTF_AHB_AFSEL_R = 0x00;
+	GPIO_PORTK_AFSEL_R = 0x00;
+	GPIO_PORTM_AFSEL_R = 0x00;
+	GPIO_PORTP_AFSEL_R = 0x00;
+	
   // 6. Seta os bits de DEN para habilitar I/O digital
-  GPIO_PORTE_AHB_DEN_R = 0x00; // PE4 = Entrada analogica
-  
+  GPIO_PORTA_AHB_DEN_R = 0xF3;
+	GPIO_PORTE_AHB_DEN_R = 0x0F; // PE4 = Entrada analogica, PE0-PE3 = Entradas digitais
+  GPIO_PORTF_AHB_DEN_R = 0xFF; // PF2-PF3 = Entradas digitais
+	GPIO_PORTK_DEN_R = 0xFF;
+	GPIO_PORTM_DEN_R = 0xF7;
+	GPIO_PORTP_DEN_R = 0x20;
+	
   // 7. Habilita resistor de pull-up interno, seta PUR para 1
   
   // 8. Define a rotina para interrupção geral
 
 }
 
-void adcInit(){
+// Inicializacao do ADC do sensor de umidade
+void ADC_Init(){ 
   // Utilizando o ADC0 
   SYSCTL_RCGCADC_R = 0x00000001; // Habilita o clock no módulo ADC no registrador RCGCADC
   while (SYSCTL_PRADC_R0 != 1){}; // Espera até que a ADC0 esteja pronta para ser acessada no registrador PRADC
@@ -66,12 +96,4 @@ void adcInit(){
   ADC0_SSMUX3_R = 0x00000009; // Para cada amostra na sequência de amostragem, configura a fonte de entrada analógica no registrador ADCSSMUXn (configurada para a entrada analogica 0)
   ADC0_SSCTL3_R = 0x6; // Para cada amostra na sequência de amostragem configura os bits de controle no nibble correspondente no registrador ADCSSCTLn (ultimos quatro bits), end0 habilitado pois ha apenas uma amostra no sequenciador 3
   ADC0_ACTSS_R = 0x00000008;  // Habilita o sequenciador no registrador ADCACTSS para configurá-lo (1 no bit asen3)
-}
-
-void adcConvert(){
-  ADC0_PSSI_R = 0x8; // Inicia o gatilho de SW, no sequenciador no registrador ADCPSSI (sequenciador 3)
-  while(ADC0_RIS_R != 0x8){}; //Faz polling do registrador ADCRIS, para esperar a conversão do sequenciador 3
-  uint32_t valor = ADC0_SSFIFO3_R; // Lê o resultado da conversão no registrador ADCSSFIFO3
-  ADC0_ISC_R = 0x00080000; // Realiza o ACK no registrador ADCISC para limpar o bit de conversão no registrador ADCRIS (escreve 1 no bit DCINSS3, bit 19)
-// return valor;
 }

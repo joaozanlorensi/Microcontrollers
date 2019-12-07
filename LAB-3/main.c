@@ -59,7 +59,7 @@ int main(void) {
   GPIO_Init();
   LCD_Init();
   LedEnable();
-
+	LCD_ImprimeString("      FIM");
   uint16_t voltasFaltantes;
 
   while (1) {

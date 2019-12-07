@@ -38,7 +38,7 @@ void PWM(void);
 void ligaEnable(void);
 void desligaEnable(void);
 void habilitaTimer(void);
-void deshabilitaTimer(void);
+void desabilitaTimer(void);
 void Timer2_init(void);
 void setaSentido(Sentido sentido);
 uint32_t converteTempoParaTimer(uint32_t tempoEmUs);
@@ -71,7 +71,7 @@ int main(void) {
     case INICIAL:
       LCD_Clear();
       desligaEnable();
-      deshabilitaTimer();
+      desabilitaTimer();
       UART_PrintString("Bem vindo ao controlador de velocidade!\n\r");
       UART_PrintString("Motor: Parado\n\r");
       estado.sentido = GetSentido();
@@ -269,11 +269,11 @@ void delay(uint32_t mili) { SysTick_Wait1ms(mili); }
 
 void HandlePWM(){
     if(GPIO_PORTF_AHB_DATA_R == 0x0004){
-      deshabilitaTimer();
+      desabilitaTimer();
       TIMER2_TAILR_R = converteTempoParaTimer(1000 - estado.velocidade * 100);
       desligaEnable();
     } else {
-      deshabilitaTimer();
+      desabilitaTimer();
       TIMER2_TAILR_R = converteTempoParaTimer(estado.velocidade * 100);
       ligaEnable();
     }

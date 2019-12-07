@@ -8,3 +8,4 @@
  * Developed for Tiva C Series TM4C1294 microcontroller
  */
  
+enum State{Starting, Reading, Watering};
