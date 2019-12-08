@@ -1,4 +1,4 @@
-/* 
+/*
  * Federal University of Technology - Paraná (UTFPR)
  * Course: Electronic Engineering
  * Class: Microcontrollers
@@ -8,6 +8,7 @@
  * Developed for Tiva C Series TM4C1294 microcontroller
  */
 
+#include "ds18b20.h"
 #include <stdint.h>
 #include <stdio.h>
 
@@ -44,47 +45,60 @@ void UART_PrintString(char *string);
 void UART_OutChar(unsigned char data);
 
 // Functions from main.c
-void printDataToSerial(void);
-void printDataToLCD(void);
+void printDataToSerial(float t, float m);
+void printDataToLCD(float t, float m);
 void delay(uint32_t mili);
+float ADCToMoisture(int32_t value);
 
-int main(void)
-{
-	PLL_Init();
+int main(void) {
+  PLL_Init();
   SysTick_Init();
   GPIO_Init();
-	
-	ADC_Init();
-	LCD_Init();
-	UART_Init();
-	
-	printDataToLCD();
-	
+  ADC_Init();
+  LCD_Init();
+  UART_Init();
+
+  DS18B20_SetPrecision(9);
+  WaterPump_ClockwiseRotation();
+
+  char serialRead;
+
+  while (1) {
+    serialRead = UART_InCharNonBlocking();
+    if (serialRead == 'e') {
+      float moisture = ADCToMoisture(MoistureSensor_adcConvert());
+      float temperature = DS18B20_GetTemperature();
+      printDataToSerial(temperature, moisture);
+      printDataToLCD(temperature, moisture);
+    } else if (serialRead == 'l') {
+      WaterPump_EnableOn();
+    } else if (serialRead == 'd') {
+      WaterPump_EnableOff();
+    }
+  }
 }
 
 void delay(uint32_t mili) { SysTick_Wait1ms(mili); }
 
-
-void printDataToSerial(){
-	char str[16];
-	int32_t adcValue = MoistureSensor_adcConvert();
-	float moisture = 100.0 * ((float)UPPER_BOUND - (float)adcValue)/((float)UPPER_BOUND - (float)LOWER_BOUND);
-	float temperature = 1.0;
-	sprintf (str, "/%.2f;%.2f/", temperature, moisture);
-	UART_PrintString(str);
+void printDataToSerial(float t, float m) {
+  char str[16];
+  sprintf(str, "/%.2f;%.2f/", t, m);
+  UART_PrintString(str);
 }
 
-void printDataToLCD(){
-	LCD_Clear();
-	char str[16];
-	int32_t adcValue = MoistureSensor_adcConvert();
-	float moisture = 100.0 * ((float)UPPER_BOUND - (float)adcValue)/((float)UPPER_BOUND - (float)LOWER_BOUND);
-	float temperature = 1.0;
-	
-	sprintf (str, "T = %.2f %cC", temperature, 223);
-	LCD_SetaCursor(0,0);
-	LCD_ImprimeString(str);
-	sprintf (str, "M = %.2f %%", moisture);
-	LCD_SetaCursor(1,0);
-	LCD_ImprimeString(str);
+void printDataToLCD(float t, float m) {
+  char str[16];
+  LCD_Clear();
+
+  sprintf(str, "T = %.2f %cC", t, 223);
+  LCD_SetaCursor(0, 0);
+  LCD_ImprimeString(str);
+  sprintf(str, "M = %.2f %%", m);
+  LCD_SetaCursor(1, 0);
+  LCD_ImprimeString(str);
+}
+
+float ADCToMoisture(int32_t value) {
+  return (float)100.0 * ((float)UPPER_BOUND - (float)value) /
+         ((float)UPPER_BOUND - (float)LOWER_BOUND);
 }
