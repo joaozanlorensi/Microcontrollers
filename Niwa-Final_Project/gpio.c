@@ -20,7 +20,7 @@
 #define GPIO_PORTE 0x0010 // Moisture sensor and Water Pump
 #define GPIO_PORTF 0x0020 // Water Pump
 #define GPIO_PORTP 0x2000 // UART
-#define GPIO_PORTL 0x0400 // Temperature sensor *(Missing Code in GPIO INIT)*
+#define GPIO_PORTL 0x0400 // Temperature sensor
 
 // GPIO Field
 void GPIO_Init() {
@@ -30,6 +30,7 @@ void GPIO_Init() {
 	GPIO_PORTS |= GPIO_PORTK;
 	GPIO_PORTS |= GPIO_PORTM;
 	GPIO_PORTS |= GPIO_PORTP;
+  GPIO_PORTS |= GPIO_PORTL;
 
   // 1a. Ativa o clock para a porta setando o bit correspondente no registrador RCGCGPIO
   SYSCTL_RCGCGPIO_R |= GPIO_PORTS;
@@ -45,6 +46,7 @@ void GPIO_Init() {
 	GPIO_PORTK_AMSEL_R = 0x00;
 	GPIO_PORTM_AMSEL_R = 0x00;
 	GPIO_PORTP_AMSEL_R = 0x00;
+  GPIO_PORTL_AMSEL_R = 0x00;
   
   // 3. Limpa PCTL para selecionar o GPIO
   GPIO_PORTA_AHB_PCTL_R = 0x11;
@@ -53,6 +55,7 @@ void GPIO_Init() {
 	GPIO_PORTK_PCTL_R = 0x00;
   GPIO_PORTM_PCTL_R = 0x00;
 	GPIO_PORTP_PCTL_R = 0x00;
+  GPIO_PORTL_PCTL_R = 0x00;
 
   // 4. DIR para 0 se for entrada, 1 se for saída
   GPIO_PORTA_AHB_DIR_R = 0xF0;
@@ -60,7 +63,9 @@ void GPIO_Init() {
   GPIO_PORTF_AHB_DIR_R = 0x0C; // PF2-PF3 <- Enable para motores usado na bomba d'água
 	GPIO_PORTK_DIR_R = 0xFF;
 	GPIO_PORTM_DIR_R = 0xFF;
-	GPIO_PORTP_DIR_R = 0x20;
+	GPIO_PORTP_DIR_R = 0x00;
+  GPIO_PORTL_DIR_R = 0x00;
+
 	
   // 5. Limpa os bits AFSEL para 0 para selecionar GPIO sem função alternativa
   GPIO_PORTA_AHB_AFSEL_R = 0x03;
@@ -69,6 +74,7 @@ void GPIO_Init() {
 	GPIO_PORTK_AFSEL_R = 0x00;
 	GPIO_PORTM_AFSEL_R = 0x00;
 	GPIO_PORTP_AFSEL_R = 0x00;
+  GPIO_PORTL_AFSEL_R = 0x00;
 	
   // 6. Seta os bits de DEN para habilitar I/O digital
   GPIO_PORTA_AHB_DEN_R = 0xF3;
@@ -77,11 +83,7 @@ void GPIO_Init() {
 	GPIO_PORTK_DEN_R = 0xFF;
 	GPIO_PORTM_DEN_R = 0xF7;
 	GPIO_PORTP_DEN_R = 0x20;
-	
-  // 7. Habilita resistor de pull-up interno, seta PUR para 1
-  
-  // 8. Define a rotina para interrupção geral
-
+  GPIO_PORTL_DEN_R = 0x01;
 }
 
 // Inicializacao do ADC do sensor de umidade
